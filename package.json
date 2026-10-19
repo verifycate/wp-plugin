@@ -1,0 +1,23 @@
+{
+	"name": "verifycate",
+	"version": "0.1.0",
+	"description": "Issue verifiable certificates from your WordPress LMS with Verifycate.",
+	"private": true,
+	"license": "GPL-2.0-or-later",
+	"author": "Verifycate",
+	"homepage": "https://github.com/verifycate/wp-plugin",
+	"scripts": {
+		"build": "wp-scripts build",
+		"start": "wp-scripts start",
+		"format": "wp-scripts format",
+		"lint:js": "wp-scripts lint-js",
+		"lint:css": "wp-scripts lint-style",
+		"plugin-zip": "wp-scripts plugin-zip",
+		"env:start": "wp-env start",
+		"env:stop": "wp-env stop"
+	},
+	"devDependencies": {
+		"@wordpress/env": "^10.0.0",
+		"@wordpress/scripts": "^30.0.0"
+	}
+}

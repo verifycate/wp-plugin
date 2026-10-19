@@ -1,0 +1,25 @@
+# Mirrors .distignore for wordpress.org SVN deployments.
+.git
+.github
+.wordpress-org
+bin
+node_modules
+tests
+vendor
+composer.json
+composer.lock
+package.json
+package-lock.json
+pnpm-lock.yaml
+phpcs.xml.dist
+phpstan.neon.dist
+phpunit.xml.dist
+wp-env.json
+.distignore
+.svnignore
+.gitignore
+.gitattributes
+.editorconfig
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
+SECURITY.md

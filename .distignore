@@ -1,0 +1,30 @@
+# Files excluded from the distributed plugin zip (wordpress.org).
+#
+# Note: `/vendor` is excluded while the plugin has no runtime Composer
+# dependencies. Once runtime dependencies are added, ship a scoped build
+# (PHP-Scoper/Mozart) of `vendor/` instead of excluding it.
+
+.git
+.github
+.wordpress-org
+bin
+node_modules
+tests
+vendor
+composer.json
+composer.lock
+package.json
+package-lock.json
+pnpm-lock.yaml
+phpcs.xml.dist
+phpstan.neon.dist
+phpunit.xml.dist
+wp-env.json
+.distignore
+.svnignore
+.gitignore
+.gitattributes
+.editorconfig
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
+SECURITY.md

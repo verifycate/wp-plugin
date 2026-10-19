@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/verifycate/wp-plugin/security/policy
+    about: Please report security issues privately, not as public issues.
+  - name: Verifycate support
+    url: https://verifycate.com
+    about: Account, billing and certificate design questions belong with Verifycate support.
