@@ -86,6 +86,16 @@ final class SettingsPage {
 		$workspace     = $this->settings->getWorkspace();
 		$api_keys_url  = Links::apiKeysUrl( $this->settings );
 		$app_url       = Links::appUrl( $this->settings );
+		$mappings_url  = add_query_arg( 'page', 'verifycate-mappings', admin_url( 'admin.php' ) );
+		$map_url       = $mapping_count > 0
+			? $mappings_url
+			: add_query_arg(
+				array(
+					'page'   => 'verifycate-mappings',
+					'action' => 'new',
+				),
+				admin_url( 'admin.php' )
+			);
 
 		Notices::render();
 		?>
@@ -126,7 +136,7 @@ final class SettingsPage {
 						</p>
 					</div>
 					<div class="verifycate-hero-actions">
-						<a class="button button-primary" href="<?php echo esc_url( add_query_arg( 'page', 'verifycate-mappings', admin_url( 'admin.php' ) ) ); ?>">
+						<a class="button button-primary" href="<?php echo esc_url( $map_url ); ?>">
 							<?php esc_html_e( 'Map a course', 'verifycate' ); ?>
 						</a>
 						<a class="button" href="<?php echo esc_url( $app_url ); ?>" target="_blank" rel="noopener noreferrer">
@@ -169,14 +179,14 @@ final class SettingsPage {
 									?>
 								</strong>
 								<p class="verifycate-muted">
-									<a href="<?php echo esc_url( add_query_arg( 'page', 'verifycate-mappings', admin_url( 'admin.php' ) ) ); ?>">
+									<a href="<?php echo esc_url( $mappings_url ); ?>">
 										<?php esc_html_e( 'Manage mappings', 'verifycate' ); ?>
 									</a>
 								</p>
 							<?php else : ?>
 								<strong><?php esc_html_e( 'Map your first course', 'verifycate' ); ?></strong>
 								<p class="verifycate-muted"><?php esc_html_e( 'Choose a course and the certificate to issue when it is completed.', 'verifycate' ); ?></p>
-								<a class="button button-primary" href="<?php echo esc_url( add_query_arg( 'page', 'verifycate-mappings', admin_url( 'admin.php' ) ) ); ?>#verifycate-mapping-form">
+								<a class="button button-primary" href="<?php echo esc_url( $map_url ); ?>">
 									<?php esc_html_e( 'Map a course', 'verifycate' ); ?>
 								</a>
 							<?php endif; ?>
