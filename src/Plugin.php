@@ -144,7 +144,6 @@ final class Plugin {
 
 		$this->booted = true;
 
-		add_action( 'init', array( $this, 'load_textdomain' ) );
 		add_action( Install::CRON_HOOK, array( $this->worker, 'run' ) );
 
 		( new Admin( $this->settings, $this->factory, $this->catalog, $this->mappings, $this->queue, $this->integrations ) )->register();
@@ -155,19 +154,6 @@ final class Plugin {
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			\WP_CLI::add_command( 'verifycate', new Cli\Commands( $this ) );
 		}
-	}
-
-	/**
-	 * Load the plugin text domain.
-	 *
-	 * @return void
-	 */
-	public function load_textdomain(): void {
-		load_plugin_textdomain(
-			'verifycate',
-			false,
-			dirname( VERIFYCATE_BASENAME ) . '/languages'
-		);
 	}
 
 	/**

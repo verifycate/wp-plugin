@@ -1,6 +1,6 @@
 === Verifycate ===
 Contributors: verifycate
-Tags: certificates, lms, learndash, tutor lms, learnpress, lifterlms, digital certificates, course certificate, verification, online courses
+Tags: certificates, lms, learndash, tutor lms, learnpress
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4

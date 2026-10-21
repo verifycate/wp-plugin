@@ -27,6 +27,8 @@ wp-env.json
 .editorconfig
 .phpunit.result.cache
 .phpunit.cache
+CHANGELOG.md
+languages/.gitkeep
 CODE_OF_CONDUCT.md
 CONTRIBUTING.md
 README.md
