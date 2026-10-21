@@ -12,6 +12,7 @@ namespace Verifycate\Admin;
 use Verifycate\Api\CertificateCatalog;
 use Verifycate\Api\ClientFactory;
 use Verifycate\Integrations\Registry;
+use Verifycate\Issuance\AttributeMapper;
 use Verifycate\Issuance\MappingRepository;
 use Verifycate\Issuance\Queue;
 use Verifycate\Support\Logger;
@@ -209,17 +210,36 @@ final class Admin {
 			true
 		);
 
+		$tokens = array();
+		foreach ( AttributeMapper::availableTokens() as $token => $label ) {
+			if ( false !== strpos( $token, ':' ) ) {
+				continue;
+			}
+
+			$tokens[] = array(
+				'token' => $token,
+				'label' => $label,
+			);
+		}
+
 		wp_localize_script(
 			'verifycate-admin',
 			'verifycateAdmin',
 			array(
-				'ajaxUrl'       => admin_url( 'admin-ajax.php' ),
-				'nonce'         => wp_create_nonce( 'verifycate_admin' ),
-				'loading'       => __( 'Loading attributes…', 'verifycate' ),
-				'noAttributes'  => __( 'This certificate has no declared attributes.', 'verifycate' ),
-				'attributes'    => __( 'Available attribute keys:', 'verifycate' ),
-				'confirmDelete' => __( 'Delete this mapping? Existing issued certificates are not affected.', 'verifycate' ),
-				'copied'        => __( 'Copied', 'verifycate' ),
+				'ajaxUrl'               => admin_url( 'admin-ajax.php' ),
+				'nonce'                 => wp_create_nonce( 'verifycate_admin' ),
+				'loading'               => __( 'Loading attributes…', 'verifycate' ),
+				'noAttributes'          => __( 'This certificate has no declared attributes. Add them in Verifycate, then reload this page.', 'verifycate' ),
+				'chooseCertificate'     => __( 'Choose a certificate to load its attributes.', 'verifycate' ),
+				'preview'               => __( 'Preview:', 'verifycate' ),
+				'insertToken'           => __( 'Insert token…', 'verifycate' ),
+				'insertTokenLabel'      => __( 'Insert token:', 'verifycate' ),
+				'moreTokens'            => __( 'More tokens', 'verifycate' ),
+				'moreTokensPlaceholder' => __( 'More tokens…', 'verifycate' ),
+				'clear'                 => __( 'Clear', 'verifycate' ),
+				'tokens'                => $tokens,
+				'confirmDelete'         => __( 'Delete this mapping? Existing issued certificates are not affected.', 'verifycate' ),
+				'copied'                => __( 'Copied', 'verifycate' ),
 			)
 		);
 	}

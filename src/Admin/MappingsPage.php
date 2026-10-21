@@ -94,6 +94,10 @@ final class MappingsPage {
 		$auto_certificate = ( null === $editing && 1 === count( $active_catalog ) ) ? $active_catalog[0]['id'] : '';
 		$mapping_url      = add_query_arg( 'page', 'verifycate-mappings', admin_url( 'admin.php' ) );
 
+		$attribute_values      = $editing ? $editing->getAttributes() : array();
+		$attribute_certificate = $editing ? $editing->getCertificateId() : $auto_certificate;
+		$attribute_defs        = '' !== $attribute_certificate ? $this->catalog->attributes( $attribute_certificate ) : array();
+
 		Notices::render();
 		?>
 		<div class="wrap verifycate-wrap">
@@ -356,17 +360,43 @@ final class MappingsPage {
 							<label for="verifycate-attributes"><?php esc_html_e( 'Attribute values', 'verifycate' ); ?></label>
 						</th>
 						<td>
-							<textarea
-								id="verifycate-attributes"
-								name="attributes"
-								rows="6"
-								class="large-text code"
-								placeholder="course_hours = {course_meta:duration}"
-							><?php echo esc_textarea( $this->formatAttributes( $editing ? $editing->getAttributes() : array() ) ); ?></textarea>
+							<div class="verifycate-attribute-rows" data-attribute-rows>
+								<?php if ( '' === $attribute_certificate ) : ?>
+									<p class="description"><?php esc_html_e( 'Choose a certificate to load its attributes.', 'verifycate' ); ?></p>
+								<?php elseif ( $attribute_defs === array() ) : ?>
+									<p class="description"><?php esc_html_e( 'This certificate has no declared attributes. Add them in Verifycate, then reload this page.', 'verifycate' ); ?></p>
+								<?php else : ?>
+									<?php $this->renderAttributeRows( $attribute_defs, $attribute_values ); ?>
+								<?php endif; ?>
+							</div>
+
+							<details class="verifycate-raw-attributes">
+								<summary><?php esc_html_e( 'Raw template editor', 'verifycate' ); ?></summary>
+								<textarea
+									id="verifycate-attributes"
+									name="attributes"
+									rows="6"
+									class="large-text code"
+									placeholder="course_hours = {course_meta:duration}"
+								><?php echo esc_textarea( $this->formatAttributes( $attribute_values ) ); ?></textarea>
+								<p class="description">
+									<?php esc_html_e( 'One attribute per line: key = template. The visual editor keeps this in sync.', 'verifycate' ); ?>
+								</p>
+							</details>
+
 							<p class="description">
-								<?php esc_html_e( 'One attribute per line: key = template. Only keys declared on the certificate are sent.', 'verifycate' ); ?>
+								<?php
+								echo wp_kses_post(
+									sprintf(
+										/* translators: 1: user meta token, 2: course meta token, 3: context token. */
+										esc_html__( 'Need a value from metadata? Use %1$s, %2$s or %3$s.', 'verifycate' ),
+										'<code>{user_meta:key}</code>',
+										'<code>{course_meta:key}</code>',
+										'<code>{context:key}</code>'
+									)
+								);
+								?>
 							</p>
-							<div class="verifycate-attribute-keys" data-target="#verifycate-certificate"></div>
 						</td>
 					</tr>
 					<tr>
@@ -502,6 +532,77 @@ final class MappingsPage {
 	 */
 	private function certificateLabel( Mapping $mapping ): string {
 		return '' !== $mapping->getCertificateName() ? $mapping->getCertificateName() : $mapping->getCertificateId();
+	}
+
+	/**
+	 * Render one row per declared certificate attribute.
+	 *
+	 * @param array<int, array{key: string, label: string}> $definitions Attribute definitions.
+	 * @param array<string, string>                         $values Current templates.
+	 * @return void
+	 */
+	private function renderAttributeRows( array $definitions, array $values ): void {
+		foreach ( $definitions as $definition ) {
+			$key   = isset( $definition['key'] ) ? (string) $definition['key'] : '';
+			$label = isset( $definition['label'] ) ? (string) $definition['label'] : $key;
+
+			if ( '' === $key ) {
+				continue;
+			}
+
+			$value = isset( $values[ $key ] ) ? $values[ $key ] : '';
+			$id    = 'verifycate-attribute-' . sanitize_html_class( $key );
+			?>
+			<div class="verifycate-attribute-row" data-attribute-key="<?php echo esc_attr( $key ); ?>">
+				<div class="verifycate-attribute-row__head">
+					<label for="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $label ); ?></label>
+					<code><?php echo esc_html( $key ); ?></code>
+					<button type="button" class="button-link verifycate-attribute-row__clear" data-clear-attribute><?php esc_html_e( 'Clear', 'verifycate' ); ?></button>
+				</div>
+
+				<input
+					type="text"
+					id="<?php echo esc_attr( $id ); ?>"
+					class="large-text verifycate-attribute-row__input"
+					value="<?php echo esc_attr( $value ); ?>"
+					placeholder="<?php esc_attr_e( 'e.g. {course_title}', 'verifycate' ); ?>"
+					data-attribute-input
+				/>
+
+				<?php
+				$primary_tokens = array(
+					'{user_name}'       => __( 'Learner name', 'verifycate' ),
+					'{user_email}'      => __( 'Email', 'verifycate' ),
+					'{course_title}'    => __( 'Course title', 'verifycate' ),
+					'{completion_date}' => __( 'Date', 'verifycate' ),
+					'{score}'           => __( 'Score', 'verifycate' ),
+				);
+				?>
+				<div class="verifycate-attribute-row__tokens">
+					<span class="verifycate-attribute-row__tokens-label"><?php esc_html_e( 'Insert token:', 'verifycate' ); ?></span>
+					<?php foreach ( $primary_tokens as $token => $token_label ) : ?>
+						<button type="button" class="verifycate-token" data-token="<?php echo esc_attr( $token ); ?>" title="<?php echo esc_attr( $token ); ?>">
+							<?php echo esc_html( $token_label ); ?>
+						</button>
+					<?php endforeach; ?>
+					<select class="verifycate-token-more" data-token-more aria-label="<?php esc_attr_e( 'More tokens', 'verifycate' ); ?>">
+						<option value=""><?php esc_html_e( 'More tokens…', 'verifycate' ); ?></option>
+						<?php foreach ( AttributeMapper::availableTokens() as $token => $token_label ) : ?>
+							<?php if ( isset( $primary_tokens[ $token ] ) || false !== strpos( $token, ':' ) ) : ?>
+								<?php continue; ?>
+							<?php endif; ?>
+							<option value="<?php echo esc_attr( $token ); ?>"><?php echo esc_html( $token_label ); ?></option>
+						<?php endforeach; ?>
+					</select>
+				</div>
+
+				<p class="description verifycate-attribute-row__preview">
+					<?php esc_html_e( 'Preview:', 'verifycate' ); ?>
+					<span data-preview>—</span>
+				</p>
+			</div>
+			<?php
+		}
 	}
 
 	/**
