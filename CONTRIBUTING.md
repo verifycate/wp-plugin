@@ -40,12 +40,12 @@ composer check
 The unit suite uses Brain Monkey, so it does not boot WordPress. Integration
 testing with wp-env requires Docker.
 
-### CI token
+### CI key
 
-CI clones the private SDK before installing dependencies. Add a repository
-secret named `VERIFYCATE_SDK_TOKEN` with **Contents: read** on
-`verifycate/php-sdk`. Without it the quality and package jobs fail before
-Composer runs.
+CI clones the private SDK before installing dependencies. The repository has a
+read-only deploy key for `verifycate/php-sdk` stored as the
+`VERIFYCATE_SDK_DEPLOY_KEY` secret. Without it the quality and package jobs fail
+before Composer runs.
 
 ## Coding standards
 

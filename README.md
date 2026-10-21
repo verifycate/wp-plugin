@@ -94,12 +94,13 @@ plugin, and uploads the zip as an artifact.
 
 ### CI and the private SDK
 
-The PHP SDK repository is private, so CI needs a read-only token with access to
-`verifycate/php-sdk`. Add a repository secret named `VERIFYCATE_SDK_TOKEN`
-(a fine-grained PAT with **Contents: read** on `verifycate/php-sdk`). The
-workflow clones the SDK into `../php-sdk` before `composer install`.
+The PHP SDK repository is private, so CI clones it with a read-only deploy key.
+The key is stored as the `VERIFYCATE_SDK_DEPLOY_KEY` secret in this repository
+and the matching public key is a read-only deploy key on
+`verifycate/php-sdk`. The workflow writes the key to a temporary SSH identity and
+clones over SSH before `composer install`.
 
-For local development the path repository is enough; no token is needed.
+For local development the path repository is enough; no key is needed.
 
 ## Supported LMS hooks
 
