@@ -1,0 +1,62 @@
+<?php
+/**
+ * LMS integration contract.
+ *
+ * @package Verifycate
+ */
+
+declare( strict_types=1 );
+
+namespace Verifycate\Integrations;
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * One source of course-completion events.
+ */
+interface IntegrationInterface {
+
+	/**
+	 * Stable integration id stored on mappings.
+	 *
+	 * @return string
+	 */
+	public function getId(): string;
+
+	/**
+	 * Human-readable label.
+	 *
+	 * @return string
+	 */
+	public function getLabel(): string;
+
+	/**
+	 * Whether the source plugin is active.
+	 *
+	 * @return bool
+	 */
+	public function isActive(): bool;
+
+	/**
+	 * Event name emitted for a normal course completion.
+	 *
+	 * @return string
+	 */
+	public function getEventName(): string;
+
+	/**
+	 * Subscribe to the source plugin's completion hook.
+	 *
+	 * @param callable $listener Receives a CompletionEvent.
+	 * @return void
+	 */
+	public function register( callable $listener ): void;
+
+	/**
+	 * Published courses available for mapping.
+	 *
+	 * @param int $limit Maximum courses.
+	 * @return array<int, string> Course id => title.
+	 */
+	public function getCourses( int $limit = 300 ): array;
+}

@@ -24,8 +24,21 @@
 			"homepage": "https://verifycate.com"
 		}
 	],
+	"repositories": [
+		{
+			"type": "path",
+			"url": "../php-sdk",
+			"options": {
+				"symlink": false,
+				"versions": {
+					"verifycate/php-sdk": "0.1.0"
+				}
+			}
+		}
+	],
 	"require": {
-		"php": ">=7.4"
+		"php": ">=7.4",
+		"verifycate/php-sdk": "^0.1"
 	},
 	"require-dev": {
 		"brain/monkey": "^2.6",
@@ -40,11 +53,6 @@
 	"autoload": {
 		"psr-4": {
 			"Verifycate\\": "src/"
-		}
-	},
-	"autoload-dev": {
-		"psr-4": {
-			"Verifycate\\Tests\\": "tests/"
 		}
 	},
 	"config": {
@@ -67,6 +75,6 @@
 			"@analyse",
 			"@test"
 		],
-		"dump-autoload": "composer dump-autoload --classmap-authoritative"
+		"build": "bash bin/build-plugin.sh"
 	}
 }

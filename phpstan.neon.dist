@@ -7,4 +7,8 @@ parameters:
 		- verifycate.php
 		- uninstall.php
 		- src
+	bootstrapFiles:
+		- tests/phpstan-bootstrap.php
+	scanFiles:
+		- tests/stubs/wp-cli.php
 	treatPhpDocTypesAsCertain: false

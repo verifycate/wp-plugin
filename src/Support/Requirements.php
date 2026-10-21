@@ -48,6 +48,12 @@ final class Requirements {
 			return false;
 		}
 
+		if ( ! class_exists( \Verifycate\Sdk\Client::class ) ) {
+			add_action( 'admin_notices', array( self::class, 'sdk_notice' ) );
+
+			return false;
+		}
+
 		return true;
 	}
 
@@ -96,6 +102,22 @@ final class Requirements {
 					(string) $wp_version
 				)
 			)
+		);
+	}
+
+	/**
+	 * Render the missing-SDK admin notice.
+	 *
+	 * @return void
+	 */
+	public static function sdk_notice(): void {
+		if ( ! current_user_can( 'activate_plugins' ) ) {
+			return;
+		}
+
+		printf(
+			'<div class="notice notice-error"><p>%s</p></div>',
+			esc_html__( 'Verifycate is missing its API client. Reinstall the plugin from a release build, or run composer install when working from a checkout.', 'verifycate' )
 		);
 	}
 }

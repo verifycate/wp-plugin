@@ -9,13 +9,36 @@ declare( strict_types=1 );
 
 namespace Verifycate\Tests\Unit;
 
-use Verifycate\Plugin;
+use Brain\Monkey;
+use Brain\Monkey\Functions;
 use PHPUnit\Framework\TestCase;
+use Verifycate\Plugin;
 
 /**
  * @covers \Verifycate\Plugin
  */
 final class PluginTest extends TestCase {
+
+	/**
+	 * Set up WordPress function mocks.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
+		Monkey\setUp();
+		Functions\when( 'get_option' )->justReturn( array() );
+	}
+
+	/**
+	 * Tear down mocks.
+	 *
+	 * @return void
+	 */
+	protected function tearDown(): void {
+		Monkey\tearDown();
+		parent::tearDown();
+	}
 
 	/**
 	 * The plugin class is a singleton.
