@@ -425,9 +425,14 @@ final class MappingsPage {
 						</div>
 						<div class="verifycate-panel-body">
 							<div class="verifycate-sidebar-section">
-								<h2 class="verifycate-sidebar-title"><?php esc_html_e( 'Options', 'verifycate' ); ?></h2>
 								<div class="verifycate-field">
-									<label class="verifycate-field-label" for="verifycate-duplicate-policy"><?php esc_html_e( 'Repeat completions', 'verifycate' ); ?></label>
+									<div class="verifycate-field-label-row">
+										<label class="verifycate-field-label" for="verifycate-duplicate-policy"><?php esc_html_e( 'Repeat completions', 'verifycate' ); ?></label>
+										<span class="verifycate-info" tabindex="0" aria-describedby="verifycate-repeat-help">
+											<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
+											<span class="verifycate-tooltip" id="verifycate-repeat-help" role="tooltip"><?php esc_html_e( 'Skip issues once per learner. Issue again supports recertification.', 'verifycate' ); ?></span>
+										</span>
+									</div>
 									<select id="verifycate-duplicate-policy" name="duplicate_policy" form="verifycate-save-form">
 										<option value="skip" <?php selected( $editing ? $editing->getDuplicatePolicy() : Mapping::DUPLICATE_SKIP, Mapping::DUPLICATE_SKIP ); ?>>
 											<?php esc_html_e( 'Skip duplicates', 'verifycate' ); ?>
@@ -436,41 +441,47 @@ final class MappingsPage {
 											<?php esc_html_e( 'Issue again', 'verifycate' ); ?>
 										</option>
 									</select>
-									<p class="description">
-										<?php esc_html_e( 'Skip issues once per learner. Issue again supports recertification.', 'verifycate' ); ?>
-									</p>
 								</div>
 
 								<div class="verifycate-field">
-									<span class="verifycate-field-label"><?php esc_html_e( 'Release', 'verifycate' ); ?></span>
-									<label class="verifycate-checkbox" for="verifycate-auto-issue">
+									<div class="verifycate-field-label-row">
+										<span class="verifycate-field-label"><?php esc_html_e( 'Certificate release', 'verifycate' ); ?></span>
+										<span class="verifycate-info" tabindex="0" aria-describedby="verifycate-release-help">
+											<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
+											<span class="verifycate-tooltip" id="verifycate-release-help" role="tooltip"><?php esc_html_e( 'When enabled, certificates are issued immediately after a recipient is imported. When disabled, recipients are queued for manual release from Verifycate.', 'verifycate' ); ?></span>
+										</span>
+									</div>
+									<label class="verifycate-toggle" for="verifycate-auto-issue">
 										<input
 											type="checkbox"
 											id="verifycate-auto-issue"
+											class="verifycate-toggle__input"
 											name="auto_issue"
 											value="1"
 											form="verifycate-save-form"
 											<?php checked( $editing ? $editing->shouldAutoIssue() : true ); ?>
 										/>
-										<span><?php esc_html_e( 'Issue immediately after importing the recipient.', 'verifycate' ); ?></span>
+										<span class="verifycate-toggle__track" aria-hidden="true"></span>
+										<span class="verifycate-toggle__label"><?php esc_html_e( 'Automatic release', 'verifycate' ); ?></span>
 									</label>
-									<p class="description">
-										<?php esc_html_e( 'Turn this off to queue recipients and release them later.', 'verifycate' ); ?>
-									</p>
 								</div>
 
 								<div class="verifycate-field">
-									<span class="verifycate-field-label"><?php esc_html_e( 'Status', 'verifycate' ); ?></span>
-									<label class="verifycate-checkbox" for="verifycate-enabled">
+									<div class="verifycate-field-label-row">
+										<span class="verifycate-field-label"><?php esc_html_e( 'Status', 'verifycate' ); ?></span>
+									</div>
+									<label class="verifycate-toggle" for="verifycate-enabled">
 										<input
 											type="checkbox"
 											id="verifycate-enabled"
+											class="verifycate-toggle__input"
 											name="enabled"
 											value="1"
 											form="verifycate-save-form"
 											<?php checked( $editing ? $editing->isEnabled() : true ); ?>
 										/>
-										<span><?php esc_html_e( 'Enable this mapping.', 'verifycate' ); ?></span>
+										<span class="verifycate-toggle__track" aria-hidden="true"></span>
+										<span class="verifycate-toggle__label"><?php esc_html_e( 'Enabled', 'verifycate' ); ?></span>
 									</label>
 								</div>
 							</div>
@@ -503,23 +514,20 @@ final class MappingsPage {
 
 						<div class="verifycate-panel-footer">
 							<div class="verifycate-publish-actions">
-								<button type="submit" form="verifycate-save-form" class="button button-primary button-large">
+								<?php if ( null !== $editing ) : ?>
+									<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="verifycate-delete-mapping verifycate-editor-delete">
+										<input type="hidden" name="action" value="verifycate_delete_mapping" />
+										<input type="hidden" name="mapping_id" value="<?php echo esc_attr( (string) $editing->getId() ); ?>" />
+										<?php wp_nonce_field( 'verifycate_delete_mapping' ); ?>
+										<button type="submit" class="button-link-delete verifycate-delete-button">
+											<?php esc_html_e( 'Delete mapping', 'verifycate' ); ?>
+										</button>
+									</form>
+								<?php endif; ?>
+								<button type="submit" form="verifycate-save-form" class="button button-primary">
 									<?php echo null === $editing ? esc_html__( 'Add mapping', 'verifycate' ) : esc_html__( 'Save mapping', 'verifycate' ); ?>
 								</button>
-								<a class="button button-secondary button-large" href="<?php echo esc_url( $mapping_url ); ?>">
-									<?php esc_html_e( 'Cancel', 'verifycate' ); ?>
-								</a>
 							</div>
-							<?php if ( null !== $editing ) : ?>
-								<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="verifycate-delete-mapping verifycate-editor-delete">
-									<input type="hidden" name="action" value="verifycate_delete_mapping" />
-									<input type="hidden" name="mapping_id" value="<?php echo esc_attr( (string) $editing->getId() ); ?>" />
-									<?php wp_nonce_field( 'verifycate_delete_mapping' ); ?>
-									<button type="submit" class="button-link-delete verifycate-delete-button">
-										<?php esc_html_e( 'Delete mapping', 'verifycate' ); ?>
-									</button>
-								</form>
-							<?php endif; ?>
 						</div>
 					</div>
 				</aside>
