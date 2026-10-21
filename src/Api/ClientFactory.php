@@ -54,10 +54,15 @@ final class ClientFactory {
 	 * @return Client
 	 */
 	public function make(): Client {
+		$base_url = rtrim( $this->settings->getBaseUrl(), '/' );
+		if ( substr( $base_url, -7 ) === '/api/v1' ) {
+			$base_url = substr( $base_url, 0, -7 );
+		}
+
 		$config = new Config(
 			$this->settings->getApiKey(),
 			$this->settings->getWorkspace(),
-			$this->settings->getBaseUrl(),
+			$base_url,
 			20.0,
 			sprintf(
 				'verifycate-wp/%s (WordPress %s; PHP %s)',

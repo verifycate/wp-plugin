@@ -91,6 +91,10 @@ final class Queue {
 			return 0;
 		}
 
+		if ( 1 === wp_rand( 1, 100 ) ) {
+			$this->purgeOld();
+		}
+
 		$this->scheduleSoon();
 
 		return (int) $wpdb->insert_id;
@@ -410,6 +414,29 @@ final class Queue {
 		}
 
 		wp_schedule_single_event( max( time() + 1, $timestamp ), Install::CRON_HOOK );
+	}
+
+	/**
+	 * Drop completed and failed jobs older than a retention window.
+	 *
+	 * @param int $days Retention in days.
+	 * @return int Rows removed.
+	 */
+	public function purgeOld( int $days = 30 ): int {
+		global $wpdb;
+
+		$table  = $this->table();
+		$cutoff = gmdate( 'Y-m-d H:i:s', time() - ( max( 1, $days ) * DAY_IN_SECONDS ) );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$deleted = $wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$table} WHERE status IN ('done','failed') AND updated_at < %s",
+				$cutoff
+			)
+		);
+
+		return is_int( $deleted ) ? $deleted : 0;
 	}
 
 	/**

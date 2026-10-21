@@ -289,7 +289,8 @@ final class Wallet {
 			 * @param array<int, array<string, mixed>> $issues Normalized issues.
 			 * @param string                           $email Recipient email.
 			 */
-			$issues = apply_filters( 'verifycate_wallet_issues', $issues, $email );
+			$filtered = apply_filters( 'verifycate_wallet_issues', $issues, $email );
+			$issues   = is_array( $filtered ) ? $filtered : array();
 
 			set_transient( $key, $issues, self::TTL );
 
