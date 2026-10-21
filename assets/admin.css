@@ -46,6 +46,174 @@
 	word-break: break-word;
 }
 
+.verifycate-hero {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px;
+	align-items: center;
+	justify-content: space-between;
+	margin: 20px 0;
+	padding: 20px 24px;
+	border: 1px solid #dcdcde;
+	border-left: 4px solid #116329;
+	border-radius: 8px;
+	background: #fff;
+}
+
+.verifycate-hero h2 {
+	margin: 6px 0 4px;
+}
+
+.verifycate-hero-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+}
+
+.verifycate-hero-actions form {
+	margin: 0;
+}
+
+.verifycate-checklist {
+	display: grid;
+	gap: 10px;
+	margin: 16px 0 24px;
+}
+
+.verifycate-check {
+	display: flex;
+	gap: 12px;
+	align-items: flex-start;
+	padding: 14px 18px;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	background: #fff;
+}
+
+.verifycate-check.is-done {
+	border-left: 4px solid #116329;
+}
+
+.verifycate-check.is-next {
+	border-left: 4px solid #2271b1;
+}
+
+.verifycate-check-icon {
+	display: inline-flex;
+	flex: 0 0 24px;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	background: #f0f0f1;
+	font-weight: 600;
+}
+
+.verifycate-check.is-done .verifycate-check-icon {
+	background: #edfaef;
+	color: #116329;
+}
+
+.verifycate-check.is-next .verifycate-check-icon {
+	background: #f0f6fc;
+	color: #2271b1;
+}
+
+.verifycate-steps {
+	margin: 0 0 16px 18px;
+}
+
+.verifycate-steps li {
+	margin-bottom: 10px;
+}
+
+.verifycate-copy-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+	margin-top: 8px;
+}
+
+.verifycate-copy-row code {
+	padding: 4px 8px;
+	border-radius: 4px;
+	background: #f6f7f7;
+}
+
+.verifycate-advanced {
+	margin-top: 16px;
+}
+
+.verifycate-advanced summary {
+	cursor: pointer;
+	font-weight: 600;
+}
+
+.verifycate-advanced summary .verifycate-muted {
+	margin-left: 6px;
+	font-weight: 400;
+}
+
+.verifycate-advanced summary:focus {
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
+}
+
+.verifycate-disclosure {
+	margin-top: 20px;
+}
+
+.verifycate-disclosure > summary {
+	cursor: pointer;
+	font-size: 15px;
+	font-weight: 600;
+}
+
+.verifycate-empty {
+	padding: 36px 24px;
+	border: 1px dashed #c3c4c7;
+	border-radius: 8px;
+	background: #fff;
+	text-align: center;
+}
+
+.verifycate-empty .dashicons {
+	width: 32px;
+	height: 32px;
+	font-size: 32px;
+	color: #8c8f94;
+}
+
+.verifycate-empty h2 {
+	margin: 8px 0;
+}
+
+.verifycate-code {
+	overflow-x: auto;
+	padding: 10px 12px;
+	border-radius: 6px;
+	background: #f6f7f7;
+}
+
+.verifycate-help h3 {
+	margin: 12px 0 6px;
+}
+
+.verifycate-link-row {
+	margin-top: 6px;
+	font-size: 12px;
+}
+
+@media (max-width: 782px) {
+	.verifycate-hero {
+		align-items: flex-start;
+		flex-direction: column;
+	}
+}
+
 .verifycate-help {
 	margin-top: 24px;
 }

@@ -97,5 +97,23 @@
 				}
 			});
 		});
+
+		document.querySelectorAll('.verifycate-copy').forEach(function (button) {
+			button.addEventListener('click', function () {
+				var value = button.getAttribute('data-copy') || '';
+
+				if (!value || !navigator.clipboard) {
+					return;
+				}
+
+				navigator.clipboard.writeText(value).then(function () {
+					var original = button.textContent;
+					button.textContent = data.copied || 'Copied';
+					window.setTimeout(function () {
+						button.textContent = original;
+					}, 2000);
+				});
+			});
+		});
 	});
 })();

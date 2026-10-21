@@ -14,6 +14,7 @@ use Verifycate\Integrations\Registry;
 use Verifycate\Issuance\AttributeMapper;
 use Verifycate\Issuance\Mapping;
 use Verifycate\Issuance\MappingRepository;
+use Verifycate\Support\Links;
 use Verifycate\Support\Settings;
 
 defined( 'ABSPATH' ) || exit;
@@ -78,10 +79,20 @@ final class MappingsPage {
 	 */
 	public function render(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen state.
-		$editing_id = isset( $_GET['mapping'] ) ? absint( wp_unslash( (string) $_GET['mapping'] ) ) : 0;
-		$editing    = $editing_id > 0 ? $this->mappings->find( $editing_id ) : null;
-		$mappings   = $this->mappings->all();
-		$catalog    = $this->catalog->all();
+		$editing_id       = isset( $_GET['mapping'] ) ? absint( wp_unslash( (string) $_GET['mapping'] ) ) : 0;
+		$editing          = $editing_id > 0 ? $this->mappings->find( $editing_id ) : null;
+		$mappings         = $this->mappings->all();
+		$catalog          = $this->catalog->all();
+		$active_catalog   = array_values(
+			array_filter(
+				$catalog,
+				static function ( array $certificate ): bool {
+					return 'active' === $certificate['status'];
+				}
+			)
+		);
+		$auto_certificate = ( null === $editing && 1 === count( $active_catalog ) ) ? $active_catalog[0]['id'] : '';
+		$mapping_url      = add_query_arg( 'page', 'verifycate-mappings', admin_url( 'admin.php' ) );
 
 		Notices::render();
 		?>
@@ -99,7 +110,7 @@ final class MappingsPage {
 							sprintf(
 								/* translators: %s: settings link. */
 								esc_html__( 'Connect your workspace before issuing certificates. %s', 'verifycate' ),
-								'<a href="' . esc_url( add_query_arg( 'page', 'verifycate', admin_url( 'admin.php' ) ) ) . '">' . esc_html__( 'Open Setup', 'verifycate' ) . '</a>'
+								'<a href="' . esc_url( add_query_arg( 'page', 'verifycate', admin_url( 'admin.php' ) ) ) . '">' . esc_html__( 'Open Get started', 'verifycate' ) . '</a>'
 							)
 						);
 						?>
@@ -107,11 +118,15 @@ final class MappingsPage {
 				</div>
 			<?php endif; ?>
 
-			<h2><?php esc_html_e( 'Saved mappings', 'verifycate' ); ?></h2>
-
 			<?php if ( $mappings === array() ) : ?>
-				<p><?php esc_html_e( 'No mappings yet. Add the first one below.', 'verifycate' ); ?></p>
+				<div class="verifycate-empty">
+					<span class="dashicons dashicons-awards" aria-hidden="true"></span>
+					<h2><?php esc_html_e( 'Map your first course', 'verifycate' ); ?></h2>
+					<p><?php esc_html_e( 'Choose a course and the certificate to issue. When a learner completes it, Verifycate creates and delivers the certificate.', 'verifycate' ); ?></p>
+					<a class="button button-primary" href="#verifycate-mapping-form"><?php esc_html_e( 'Choose a course', 'verifycate' ); ?></a>
+				</div>
 			<?php else : ?>
+				<h2><?php esc_html_e( 'Saved mappings', 'verifycate' ); ?></h2>
 				<table class="wp-list-table widefat fixed striped verifycate-table">
 					<thead>
 						<tr>
@@ -126,6 +141,15 @@ final class MappingsPage {
 					</thead>
 					<tbody>
 						<?php foreach ( $mappings as $mapping ) : ?>
+							<?php
+							$edit_url = add_query_arg(
+								array(
+									'page'    => 'verifycate-mappings',
+									'mapping' => $mapping->getId(),
+								),
+								admin_url( 'admin.php' )
+							) . '#verifycate-mapping-form';
+							?>
 							<tr>
 								<td>
 									<span class="verifycate-pill <?php echo $mapping->isEnabled() ? 'is-on' : 'is-off'; ?>">
@@ -147,19 +171,7 @@ final class MappingsPage {
 								</td>
 								<td><?php echo $mapping->shouldAutoIssue() ? esc_html__( 'Immediately', 'verifycate' ) : esc_html__( 'Leave pending', 'verifycate' ); ?></td>
 								<td class="verifycate-row-actions">
-									<a class="button button-small" href="
-									<?php
-									echo esc_url(
-										add_query_arg(
-											array(
-												'page'    => 'verifycate-mappings',
-												'mapping' => $mapping->getId(),
-											),
-											admin_url( 'admin.php' )
-										)
-									);
-									?>
-																			#verifycate-mapping-form">
+									<a class="button button-small" href="<?php echo esc_url( $edit_url ); ?>">
 										<?php esc_html_e( 'Edit', 'verifycate' ); ?>
 									</a>
 									<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="verifycate-delete-mapping">
@@ -255,6 +267,11 @@ final class MappingsPage {
 							<label for="verifycate-certificate"><?php esc_html_e( 'Issue this certificate', 'verifycate' ); ?></label>
 						</th>
 						<td>
+							<?php if ( $catalog !== array() && $active_catalog === array() ) : ?>
+								<div class="notice notice-warning inline">
+									<p><?php esc_html_e( 'No active certificates. Publish one in Verifycate before issuing.', 'verifycate' ); ?></p>
+								</div>
+							<?php endif; ?>
 							<?php if ( $catalog === array() ) : ?>
 								<input
 									type="text"
@@ -281,12 +298,13 @@ final class MappingsPage {
 									<?php
 									$found_current = false;
 									foreach ( $catalog as $certificate ) {
-										$current = $editing && $editing->getCertificateId() === $certificate['id'];
+										$current  = $editing && $editing->getCertificateId() === $certificate['id'];
+										$selected = $editing ? $current : ( '' !== $auto_certificate && $auto_certificate === $certificate['id'] );
 										if ( $current ) {
 											$found_current = true;
 										}
 										?>
-										<option value="<?php echo esc_attr( $certificate['id'] ); ?>" <?php selected( $current ); ?>>
+										<option value="<?php echo esc_attr( $certificate['id'] ); ?>" <?php selected( $selected ); ?>>
 											<?php echo esc_html( $certificate['name'] ); ?>
 											(<?php echo esc_html( $certificate['status'] ); ?>)
 										</option>
@@ -303,8 +321,22 @@ final class MappingsPage {
 									<?php esc_html_e( 'Draft certificates queue recipients but cannot be released until the certificate is published in Verifycate.', 'verifycate' ); ?>
 								</p>
 							<?php endif; ?>
+							<p class="verifycate-link-row">
+								<a href="<?php echo esc_url( Links::newCertificateUrl( $this->settings ) ); ?>" target="_blank" rel="noopener noreferrer">
+									<?php esc_html_e( 'Create a certificate in Verifycate', 'verifycate' ); ?>
+								</a>
+							</p>
 						</td>
 					</tr>
+				</table>
+
+				<details class="verifycate-advanced">
+					<summary>
+						<?php esc_html_e( 'Advanced options', 'verifycate' ); ?>
+						<span class="verifycate-muted"><?php esc_html_e( 'Attributes, duplicate handling and release', 'verifycate' ); ?></span>
+					</summary>
+
+					<table class="form-table" role="presentation">
 					<tr>
 						<th scope="row">
 							<label for="verifycate-attributes"><?php esc_html_e( 'Attribute values', 'verifycate' ); ?></label>
@@ -369,7 +401,18 @@ final class MappingsPage {
 							</label>
 						</td>
 					</tr>
-				</table>
+					</table>
+
+					<div class="verifycate-help">
+						<h3><?php esc_html_e( 'Template tokens', 'verifycate' ); ?></h3>
+						<p><?php esc_html_e( 'Templates are filled in when the certificate is issued. Unknown tokens are left as-is so typos are visible.', 'verifycate' ); ?></p>
+						<ul class="verifycate-token-list">
+							<?php foreach ( AttributeMapper::availableTokens() as $token => $label ) : ?>
+								<li><code><?php echo esc_html( $token ); ?></code> <?php echo esc_html( $label ); ?></li>
+							<?php endforeach; ?>
+						</ul>
+					</div>
+				</details>
 
 				<?php submit_button( null === $editing ? __( 'Add mapping', 'verifycate' ) : __( 'Save mapping', 'verifycate' ) ); ?>
 
@@ -379,16 +422,6 @@ final class MappingsPage {
 					</a>
 				<?php endif; ?>
 			</form>
-
-			<div class="verifycate-card verifycate-help">
-				<h2><?php esc_html_e( 'Template tokens', 'verifycate' ); ?></h2>
-				<p><?php esc_html_e( 'Templates are filled in when the certificate is issued. Unknown tokens are left as-is so typos are visible.', 'verifycate' ); ?></p>
-				<ul class="verifycate-token-list">
-					<?php foreach ( AttributeMapper::availableTokens() as $token => $label ) : ?>
-						<li><code><?php echo esc_html( $token ); ?></code> <?php echo esc_html( $label ); ?></li>
-					<?php endforeach; ?>
-				</ul>
-			</div>
 		</div>
 		<?php
 	}

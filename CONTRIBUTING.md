@@ -75,7 +75,7 @@ Every pull request must maintain the plugin's security posture:
 - Never call `wp_remote_request` or `wp_remote_get` directly. Use the
   `Verifycate\Api\ClientFactory`, which injects the SDK's WordPress transport.
 - Never log or render a stored API key in full.
-- Uninstall must not delete data unless the administrator opted in on the Setup
+- Uninstall must not delete data unless the administrator opted in on the Get started
   screen.
 
 ## Architecture

@@ -48,8 +48,9 @@ connection, mapping and issuance.
 1. Upload the plugin zip to `/wp-content/plugins/verifycate/`, or install it
    through the WordPress plugins screen.
 2. Activate the plugin.
-3. Go to **Verifycate → Setup**, enter your workspace slug and API key, then
-   click **Test connection**.
+3. Go to **Verifycate → Get started**, paste your workspace slug or dashboard
+   URL and API key, then click **Connect Verifycate**. The plugin tests the
+   connection immediately.
 4. Create at least one certificate in the Verifycate dashboard.
 5. Go to **Verifycate → Mappings** and map a course to that certificate.
 
@@ -204,7 +205,7 @@ date, score when available, and mapped certificate attributes to the Verifycate
 API. Nothing is sent before the site is connected and a mapping is saved.
 
 Uninstall removes settings, tables, queue history and logs **only** when the
-administrator enabled “Delete … when the plugin is uninstalled” on the Setup
+administrator enabled “Delete … when the plugin is uninstalled” on the Get started
 screen. The default is to keep data so a reinstall resumes cleanly.
 
 ## Project structure
@@ -218,7 +219,7 @@ src/
   Api/                     Client factory, WordPress transport, catalogue cache
   Integrations/            One adapter per LMS plus a custom hook
   Issuance/                Events, mappings, attributes, queue, worker
-  Admin/                   Setup, mappings and logs screens
+  Admin/                   Get started, mappings and logs screens
   Frontend/                Wallet shortcode and block
   Cli/                     WP-CLI commands
   Support/                 Settings, encryption, logging, requirements

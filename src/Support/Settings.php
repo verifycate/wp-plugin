@@ -169,7 +169,7 @@ final class Settings {
 	 */
 	public function save( array $input ): void {
 		$workspace = isset( $input['workspace'] ) && is_scalar( $input['workspace'] )
-			? sanitize_title( (string) $input['workspace'] )
+			? self::normalizeWorkspace( (string) $input['workspace'] )
 			: '';
 
 		$api_key = isset( $input['api_key'] ) && is_scalar( $input['api_key'] )
@@ -214,6 +214,48 @@ final class Settings {
 	 */
 	public function toArray(): array {
 		return $this->values;
+	}
+
+	/**
+	 * Accept a workspace slug or a dashboard URL and return the slug.
+	 *
+	 * Examples:
+	 *   acme
+	 *   https://app.verifycate.com/acme
+	 *   https://app.verifycate.com/acme/api-keys
+	 *   app.verifycate.com/acme
+	 *
+	 * @param string $value Raw value.
+	 * @return string
+	 */
+	public static function normalizeWorkspace( string $value ): string {
+		$value = trim( $value );
+
+		if ( '' === $value ) {
+			return '';
+		}
+
+		$has_scheme     = 1 === preg_match( '#^https?://#i', $value );
+		$looks_like_url = $has_scheme
+			|| false !== strpos( $value, 'verifycate.' )
+			|| false !== strpos( $value, 'app.' );
+
+		if ( $looks_like_url ) {
+			$url  = $has_scheme ? $value : 'https://' . ltrim( $value, '/' );
+			$path = (string) wp_parse_url( $url, PHP_URL_PATH );
+			$path = trim( $path, '/' );
+
+			if ( '' === $path ) {
+				return '';
+			}
+
+			$segments = explode( '/', $path );
+			$value    = rawurldecode( (string) $segments[0] );
+		} elseif ( false !== strpos( $value, '/' ) ) {
+			$value = explode( '/', $value )[0];
+		}
+
+		return sanitize_title( $value );
 	}
 
 	/**

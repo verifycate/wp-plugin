@@ -157,8 +157,8 @@ final class Admin {
 
 		add_submenu_page(
 			'verifycate',
-			__( 'Setup', 'verifycate' ),
-			__( 'Setup', 'verifycate' ),
+			__( 'Get started', 'verifycate' ),
+			__( 'Get started', 'verifycate' ),
 			self::CAPABILITY,
 			'verifycate',
 			array( $this, 'renderSettings' )
@@ -219,6 +219,7 @@ final class Admin {
 				'noAttributes'  => __( 'This certificate has no declared attributes.', 'verifycate' ),
 				'attributes'    => __( 'Available attribute keys:', 'verifycate' ),
 				'confirmDelete' => __( 'Delete this mapping? Existing issued certificates are not affected.', 'verifycate' ),
+				'copied'        => __( 'Copied', 'verifycate' ),
 			)
 		);
 	}
@@ -265,7 +266,25 @@ final class Admin {
 		$this->settings->save( wp_unslash( $_POST ) );
 		$this->catalog->flush();
 
-		Notices::add( 'success', __( 'Settings saved. Test the connection when you are ready.', 'verifycate' ) );
+		$result = $this->factory->testConnection();
+
+		if ( $result['ok'] ) {
+			$message = sprintf(
+				/* translators: 1: workspace slug, 2: connection result. */
+				__( 'Connected to %1$s. %2$s', 'verifycate' ),
+				$this->settings->getWorkspace(),
+				$result['message']
+			);
+
+			if ( 0 === $this->mappings->count() ) {
+				$message .= ' ' . __( 'Next, map a course.', 'verifycate' );
+			}
+
+			Notices::add( 'success', $message );
+		} else {
+			Notices::add( 'error', $result['message'] );
+		}
+
 		$this->redirect( 'verifycate' );
 	}
 
@@ -537,7 +556,7 @@ final class Admin {
 	 */
 	private function settingsPage(): SettingsPage {
 		if ( null === $this->settings_page ) {
-			$this->settings_page = new SettingsPage( $this->settings, $this->factory, $this->integrations );
+			$this->settings_page = new SettingsPage( $this->settings, $this->factory, $this->mappings, $this->integrations );
 		}
 
 		return $this->settings_page;

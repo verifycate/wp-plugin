@@ -70,8 +70,9 @@ A Verifycate account is required for the plugin to issue certificates.
 1. Upload the plugin files to `/wp-content/plugins/verifycate/`, or install it
    through the WordPress plugins screen.
 2. Activate the plugin.
-3. Go to Verifycate > Setup and enter your workspace slug and API key. The key
-   needs the certificates:read and certificates:write scopes.
+3. Go to Verifycate > Get started and paste your workspace slug or dashboard
+   URL plus your API key. The plugin tests the connection when you click
+   Connect Verifycate.
 4. Create at least one certificate in the Verifycate dashboard, then map a
    course to it under Verifycate > Mappings.
 5. Optional: add `[verifycate_wallet]` to a learner-facing page, or insert the
@@ -111,7 +112,7 @@ fixed.
 
 Settings, encrypted API key, mappings, queue jobs and bounded logs are stored in
 your WordPress database. Uninstall removes them only when the administrator
-enabled data removal on the Setup screen.
+enabled data removal on the Get started screen.
 
 = Can learners see their certificates? =
 
