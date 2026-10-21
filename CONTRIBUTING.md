@@ -45,7 +45,8 @@ testing with wp-env requires Docker.
 CI clones the private SDK before installing dependencies. The repository has a
 read-only deploy key for `verifycate/php-sdk` stored as the
 `VERIFYCATE_SDK_DEPLOY_KEY` secret. Without it the quality and package jobs fail
-before Composer runs.
+before Composer runs. When the SDK becomes public, remove the key and secret and
+switch the clone to HTTPS.
 
 ## Coding standards
 

@@ -100,7 +100,9 @@ and the matching public key is a read-only deploy key on
 `verifycate/php-sdk`. The workflow writes the key to a temporary SSH identity and
 clones over SSH before `composer install`.
 
-For local development the path repository is enough; no key is needed.
+For local development the path repository is enough; no key is needed. When both
+repositories become public at launch, delete the `VERIFYCATE_SDK_DEPLOY_KEY`
+secret and the read-only deploy key, then switch the workflow clone to HTTPS.
 
 ## Supported LMS hooks
 
