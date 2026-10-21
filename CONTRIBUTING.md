@@ -37,8 +37,12 @@ composer check
 ```
 
 `composer check` runs PHPCS (WordPress + PHPCompatibility), PHPStan and PHPUnit.
-The unit suite uses Brain Monkey, so it does not boot WordPress. Integration
-testing with wp-env requires Docker.
+The unit suite uses Brain Monkey, so it does not boot WordPress. For a full
+local harness with Docker, the mock Verifycate API and all free LMS plugins, see
+[tests/e2e/README.md](tests/e2e/README.md).
+
+wp-env is pinned to PHP 8.3 because the old PHP 7.4 wp-env image no longer
+builds from its Debian package URLs. CI still covers PHP 7.4 through 8.4.
 
 ### CI key
 

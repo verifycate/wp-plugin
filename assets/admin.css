@@ -41,6 +41,11 @@
 	margin-top: 0;
 }
 
+.verifycate-card code {
+	white-space: normal;
+	word-break: break-word;
+}
+
 .verifycate-help {
 	margin-top: 24px;
 }
