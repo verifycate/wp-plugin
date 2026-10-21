@@ -40,6 +40,15 @@ final class ClientFactory {
 	}
 
 	/**
+	 * Whether an API key is available for connecting.
+	 *
+	 * @return bool
+	 */
+	public function hasCredentials(): bool {
+		return $this->settings->hasApiKey();
+	}
+
+	/**
 	 * Whether the workspace and API key are configured.
 	 *
 	 * @return bool
@@ -81,10 +90,10 @@ final class ClientFactory {
 	 * @return array{ok: bool, message: string, total: int}
 	 */
 	public function testConnection(): array {
-		if ( ! $this->isConfigured() ) {
+		if ( ! $this->hasCredentials() ) {
 			$result = array(
 				'ok'      => false,
-				'message' => __( 'Add a workspace slug and API key before testing the connection.', 'verifycate' ),
+				'message' => __( 'Paste a workspace API key before connecting.', 'verifycate' ),
 				'total'   => 0,
 			);
 
@@ -94,16 +103,45 @@ final class ClientFactory {
 		}
 
 		try {
-			$page   = $this->make()->certificates()->list( null, 1 );
-			$result = array(
-				'ok'      => true,
-				'message' => sprintf(
-					/* translators: %d: number of certificates in the workspace. */
-					_n( 'Connected. %d certificate is available.', 'Connected. %d certificates are available.', $page->getTotal(), 'verifycate' ),
-					$page->getTotal()
-				),
-				'total'   => $page->getTotal(),
+			$client    = $this->make();
+			$workspace = $client->workspace()->current();
+
+			$this->settings->setResolvedWorkspace(
+				$workspace->getSlug(),
+				$workspace->getPermissions(),
+				$workspace->hasFullAccess(),
+				$workspace->isSeatLive()
 			);
+
+			if ( ! $workspace->isSeatLive() ) {
+				$result = array(
+					'ok'      => false,
+					'message' => __( 'This workspace has no active Verifycate plan. Activate a plan before issuing certificates.', 'verifycate' ),
+					'total'   => 0,
+				);
+			} elseif ( ! $workspace->canWriteCertificates() ) {
+				$result = array(
+					'ok'      => false,
+					'message' => __( 'This API key can read certificates but cannot issue them. Create a key with the certificates:write scope and reconnect.', 'verifycate' ),
+					'total'   => 0,
+				);
+			} else {
+				$page   = $client->withWorkspace( $workspace->getSlug() )->certificates()->list( null, 1 );
+				$result = array(
+					'ok'      => true,
+					'message' => sprintf(
+						/* translators: 1: workspace name, 2: certificate count message. */
+						__( 'Connected to %1$s. %2$s', 'verifycate' ),
+						'' !== $workspace->getName() ? $workspace->getName() : $workspace->getSlug(),
+						sprintf(
+							/* translators: %d: number of certificates in the workspace. */
+							_n( '%d certificate is available.', '%d certificates are available.', $page->getTotal(), 'verifycate' ),
+							$page->getTotal()
+						)
+					),
+					'total'   => $page->getTotal(),
+				);
+			}
 		} catch ( ApiException $exception ) {
 			$result = array(
 				'ok'      => false,

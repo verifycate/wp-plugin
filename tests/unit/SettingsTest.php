@@ -40,6 +40,16 @@ final class SettingsTest extends TestCase {
 				return trim( $value );
 			}
 		);
+		Functions\when( 'wp_parse_url' )->alias(
+			static function ( string $url, int $component = -1 ) {
+				return parse_url( $url, $component );
+			}
+		);
+		Functions\when( '__' )->alias(
+			static function ( string $text ): string {
+				return $text;
+			}
+		);
 	}
 
 	/**
@@ -139,5 +149,49 @@ final class SettingsTest extends TestCase {
 
 		$this->assertFalse( $settings->isConnected() );
 		$this->assertSame( 'acme', $settings->getWorkspace() );
+	}
+
+	/**
+	 * Workspace slugs can be pasted as dashboard URLs.
+	 */
+	public function test_normalizes_workspace_urls(): void {
+		$this->assertSame( 'acme', Settings::normalizeWorkspace( 'acme' ) );
+		$this->assertSame( 'acme', Settings::normalizeWorkspace( 'https://app.verifycate.com/acme' ) );
+		$this->assertSame( 'acme', Settings::normalizeWorkspace( 'https://app.verifycate.com/acme/api-keys' ) );
+		$this->assertSame( 'acme', Settings::normalizeWorkspace( 'app.verifycate.com/acme' ) );
+		$this->assertSame( '', Settings::normalizeWorkspace( 'https://app.verifycate.com' ) );
+	}
+
+	/**
+	 * Resolved API-key metadata drives the readiness checks.
+	 */
+	public function test_resolved_workspace_tracks_scopes(): void {
+		Functions\expect( 'update_option' )->once();
+
+		$settings = new Settings( array( 'api_key' => Crypto::encrypt( 'vc_key' ) ) );
+		$settings->setResolvedWorkspace(
+			'acme',
+			array( 'certificates:read', 'certificates:write' ),
+			false,
+			true
+		);
+
+		$this->assertSame( 'acme', $settings->getWorkspace() );
+		$this->assertTrue( $settings->canWriteCertificates() );
+		$this->assertTrue( $settings->isReadyToIssue() );
+	}
+
+	/**
+	 * A read-only key is connected but cannot issue.
+	 */
+	public function test_read_only_key_is_not_ready(): void {
+		Functions\expect( 'update_option' )->once();
+
+		$settings = new Settings( array( 'api_key' => Crypto::encrypt( 'vc_key' ) ) );
+		$settings->setResolvedWorkspace( 'acme', array( 'certificates:read' ), false, true );
+
+		$this->assertFalse( $settings->canWriteCertificates() );
+		$this->assertFalse( $settings->isReadyToIssue() );
+		$this->assertNotSame( '', $settings->connectionIssue() );
 	}
 }

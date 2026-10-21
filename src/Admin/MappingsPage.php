@@ -204,8 +204,9 @@ final class MappingsPage {
 							<label for="verifycate-source"><?php esc_html_e( 'When this is completed', 'verifycate' ); ?></label>
 						</th>
 						<td>
-							<select id="verifycate-source" name="source" class="regular-text" required>
-								<option value=""><?php esc_html_e( 'Select a course…', 'verifycate' ); ?></option>
+							<div class="verifycate-combobox" data-combobox>
+								<select id="verifycate-source" name="source" class="regular-text verifycate-combobox__native" data-search-placeholder="<?php esc_attr_e( 'Search courses…', 'verifycate' ); ?>" data-empty="<?php esc_attr_e( 'No matching courses.', 'verifycate' ); ?>" data-required="1" required>
+									<option value=""><?php esc_html_e( 'Select a course…', 'verifycate' ); ?></option>
 								<?php foreach ( $this->integrations->courseGroups() as $group ) : ?>
 									<optgroup label="<?php echo esc_attr( $group['label'] ); ?>">
 										<option value="<?php echo esc_attr( $group['id'] . ':0' ); ?>" <?php selected( $this->sourceValue( $editing ), $group['id'] . ':0' ); ?>>
@@ -229,7 +230,13 @@ final class MappingsPage {
 										<?php esc_html_e( 'Custom hook', 'verifycate' ); ?>
 									</option>
 								</optgroup>
-							</select>
+								</select>
+								<div class="verifycate-combobox__control" hidden>
+									<input type="text" class="verifycate-combobox__input" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="verifycate-source-list" autocomplete="off" />
+									<button type="button" class="verifycate-combobox__toggle" aria-label="<?php esc_attr_e( 'Show options', 'verifycate' ); ?>">▾</button>
+									<ul class="verifycate-combobox__list" id="verifycate-source-list" role="listbox" hidden></ul>
+								</div>
+							</div>
 							<p class="description">
 								<?php esc_html_e( 'Course lists come from active LMS plugins. Use the custom hook for membership, e-commerce and in-house course plugins.', 'verifycate' ); ?>
 							</p>
@@ -293,7 +300,8 @@ final class MappingsPage {
 									<?php esc_html_e( 'The certificate list could not be loaded. Paste the certificate ID from the Verifycate dashboard, or connect the workspace and reload.', 'verifycate' ); ?>
 								</p>
 							<?php else : ?>
-								<select id="verifycate-certificate" name="certificate_id" class="regular-text" required>
+							<div class="verifycate-combobox" data-combobox>
+								<select id="verifycate-certificate" name="certificate_id" class="regular-text verifycate-combobox__native" data-search-placeholder="<?php esc_attr_e( 'Search certificates…', 'verifycate' ); ?>" data-empty="<?php esc_attr_e( 'No matching certificates.', 'verifycate' ); ?>" data-required="1" required>
 									<option value=""><?php esc_html_e( 'Select a certificate…', 'verifycate' ); ?></option>
 									<?php
 									$found_current = false;
@@ -317,6 +325,12 @@ final class MappingsPage {
 										</option>
 									<?php endif; ?>
 								</select>
+								<div class="verifycate-combobox__control" hidden>
+									<input type="text" class="verifycate-combobox__input" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="verifycate-certificate-list" autocomplete="off" />
+									<button type="button" class="verifycate-combobox__toggle" aria-label="<?php esc_attr_e( 'Show options', 'verifycate' ); ?>">▾</button>
+									<ul class="verifycate-combobox__list" id="verifycate-certificate-list" role="listbox" hidden></ul>
+								</div>
+							</div>
 								<p class="description">
 									<?php esc_html_e( 'Draft certificates queue recipients but cannot be released until the certificate is published in Verifycate.', 'verifycate' ); ?>
 								</p>

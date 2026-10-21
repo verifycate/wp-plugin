@@ -49,10 +49,14 @@ Configure the plugin and seed the learner, courses and mappings:
 
 ```bash
 npx wp-env run cli wp eval-file wp-content/plugins/wp-plugin/tests/e2e/configure.php
-npx wp-env run cli wp eval-file wp-content/plugins/wp-plugin/tests/e2e/setup.php
 npx wp-env run cli wp verifycate status
+npx wp-env run cli wp eval-file wp-content/plugins/wp-plugin/tests/e2e/setup.php
 npx wp-env run cli wp verifycate mappings
 ```
+
+`configure.php` stores only the API key. `wp verifycate status` resolves the
+workspace through `GET /api/v1/workspaces/current` and prints the detected slug,
+scopes and plan state.
 
 Fire the custom hook and process the queue:
 

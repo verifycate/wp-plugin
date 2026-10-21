@@ -51,18 +51,27 @@ final class Commands {
 		unset( $args, $assoc_args );
 
 		$settings = $this->plugin->settings();
+		$result   = null;
 
-		\WP_CLI::line( sprintf( 'Workspace: %s', '' !== $settings->getWorkspace() ? $settings->getWorkspace() : '(not set)' ) );
+		if ( $settings->hasApiKey() ) {
+			$result   = $this->plugin->factory()->testConnection();
+			$settings = $this->plugin->settings();
+		}
+
+		$connected = $settings->isConnected();
+
+		\WP_CLI::line( sprintf( 'Workspace: %s', $connected ? $settings->getWorkspace() : '(not set)' ) );
 		\WP_CLI::line( sprintf( 'API key:   %s', '' !== $settings->getApiKey() ? $settings->getMaskedApiKey() : '(not set)' ) );
 		\WP_CLI::line( sprintf( 'API URL:   %s', $settings->getBaseUrl() ) );
+		\WP_CLI::line( sprintf( 'Scopes:    %s', $connected ? ( $settings->hasFullAccess() ? 'full access' : ( $settings->getPermissions() !== array() ? implode( ', ', $settings->getPermissions() ) : '(unknown)' ) ) : '(not connected)' ) );
+		\WP_CLI::line( sprintf( 'Plan:      %s', $connected ? ( $settings->isSeatLive() ? 'active' : 'inactive' ) : '(not connected)' ) );
 
-		if ( ! $settings->isConnected() ) {
-			\WP_CLI::warning( 'Verifycate is not connected.' );
+		if ( null === $result ) {
+			\WP_CLI::warning( 'Add a workspace API key before testing the connection.' );
 
 			return;
 		}
 
-		$result = $this->plugin->factory()->testConnection();
 		$result['ok'] ? \WP_CLI::success( $result['message'] ) : \WP_CLI::warning( $result['message'] );
 
 		$counts = $this->plugin->queue()->counts();

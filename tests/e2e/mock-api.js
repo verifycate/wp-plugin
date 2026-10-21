@@ -218,6 +218,18 @@ async function handle(request, response) {
 	const body = request.method === 'POST' ? await readBody(request) : {};
 	const workspace = `/api/v1/workspaces/${WORKSPACE}`;
 
+	if (path === '/api/v1/workspaces/current' && request.method === 'GET') {
+		send(response, 200, {
+			slug: WORKSPACE,
+			name: 'Acme Academy',
+			issuer_name: 'Acme Academy',
+			seat_live: true,
+			permissions: ['certificates:read', 'certificates:write'],
+			full_access: false,
+		});
+		return;
+	}
+
 	if (path === `${workspace}/certificates` && request.method === 'GET') {
 		const search = (url.searchParams.get('search') || '').toLowerCase();
 		const limit = Number(url.searchParams.get('limit') || 50);

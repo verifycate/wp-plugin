@@ -78,6 +78,8 @@ final class SettingsPage {
 	 */
 	public function render(): void {
 		$connected     = $this->factory->isConfigured();
+		$ready         = $this->settings->isReadyToIssue();
+		$issue         = $this->settings->connectionIssue();
 		$last_check    = $this->settings->getLastCheck();
 		$mapping_count = $this->mappings->count();
 		$active        = count( $this->integrations->active() );
@@ -105,7 +107,9 @@ final class SettingsPage {
 			<?php if ( $connected ) : ?>
 				<div class="verifycate-hero is-connected">
 					<div class="verifycate-hero-main">
-						<span class="verifycate-pill is-on"><?php esc_html_e( 'Connected', 'verifycate' ); ?></span>
+						<span class="verifycate-pill <?php echo $ready ? 'is-on' : 'is-warn'; ?>">
+							<?php echo $ready ? esc_html__( 'Connected', 'verifycate' ) : esc_html__( 'Needs attention', 'verifycate' ); ?>
+						</span>
 						<h2>
 							<?php
 							echo wp_kses_post(
@@ -135,6 +139,12 @@ final class SettingsPage {
 						</form>
 					</div>
 				</div>
+
+				<?php if ( '' !== $issue ) : ?>
+					<div class="notice notice-warning inline">
+						<p><?php echo esc_html( $issue ); ?></p>
+					</div>
+				<?php endif; ?>
 
 				<div class="verifycate-checklist">
 					<div class="verifycate-check is-done">
@@ -195,7 +205,7 @@ final class SettingsPage {
 					</div>
 				</div>
 
-				<details class="verifycate-card verifycate-disclosure">
+				<details class="verifycate-card verifycate-disclosure" id="verifycate-connection">
 					<summary><?php esc_html_e( 'Connection details', 'verifycate' ); ?></summary>
 					<p class="verifycate-muted">
 						<?php esc_html_e( 'Change the workspace, rotate the API key, or point at a different environment.', 'verifycate' ); ?>
@@ -219,7 +229,7 @@ final class SettingsPage {
 							</li>
 							<li>
 								<strong><?php esc_html_e( 'Paste it below', 'verifycate' ); ?></strong><br />
-								<span class="verifycate-muted"><?php esc_html_e( 'Your workspace slug is in the dashboard URL. Pasting the full URL works too.', 'verifycate' ); ?></span>
+								<span class="verifycate-muted"><?php esc_html_e( 'We will detect your workspace and check the key’s permissions automatically.', 'verifycate' ); ?></span>
 							</li>
 						</ol>
 
@@ -249,26 +259,6 @@ final class SettingsPage {
 			<table class="form-table" role="presentation">
 				<tr>
 					<th scope="row">
-						<label for="verifycate-workspace"><?php esc_html_e( 'Workspace', 'verifycate' ); ?></label>
-					</th>
-					<td>
-						<input
-							type="text"
-							id="verifycate-workspace"
-							name="workspace"
-							value="<?php echo esc_attr( $this->settings->getWorkspace() ); ?>"
-							class="regular-text"
-							placeholder="acme or https://app.verifycate.com/acme"
-							autocomplete="off"
-							required
-						/>
-						<p class="description">
-							<?php esc_html_e( 'Paste your workspace slug or the URL from your browser. We will extract the slug.', 'verifycate' ); ?>
-						</p>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row">
 						<label for="verifycate-api-key"><?php esc_html_e( 'API key', 'verifycate' ); ?></label>
 					</th>
 					<td>
@@ -286,7 +276,7 @@ final class SettingsPage {
 							echo wp_kses_post(
 								sprintf(
 									/* translators: %s: API keys link. */
-									esc_html__( 'Needs the certificates:read and certificates:write scopes. %s', 'verifycate' ),
+									esc_html__( 'Paste a key with the certificates:read and certificates:write scopes. We will find your workspace automatically. %s', 'verifycate' ),
 									'<a href="' . esc_url( Links::apiKeysUrl( $this->settings ) ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Create an API key', 'verifycate' ) . '</a>'
 								)
 							);
@@ -302,6 +292,25 @@ final class SettingsPage {
 			<details class="verifycate-advanced">
 				<summary><?php esc_html_e( 'Advanced settings', 'verifycate' ); ?></summary>
 				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row">
+							<label for="verifycate-workspace"><?php esc_html_e( 'Workspace override', 'verifycate' ); ?></label>
+						</th>
+						<td>
+							<input
+								type="text"
+								id="verifycate-workspace"
+								name="workspace_override"
+								value=""
+								class="regular-text"
+								placeholder="<?php echo esc_attr( $this->settings->getWorkspace() ); ?>"
+								autocomplete="off"
+							/>
+							<p class="description">
+								<?php esc_html_e( 'Leave blank to detect the workspace from the API key. Paste a slug or dashboard URL only if you need to override it.', 'verifycate' ); ?>
+							</p>
+						</td>
+					</tr>
 					<tr>
 						<th scope="row">
 							<label for="verifycate-base-url"><?php esc_html_e( 'API base URL', 'verifycate' ); ?></label>

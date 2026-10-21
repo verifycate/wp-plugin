@@ -269,12 +269,7 @@ final class Admin {
 		$result = $this->factory->testConnection();
 
 		if ( $result['ok'] ) {
-			$message = sprintf(
-				/* translators: 1: workspace slug, 2: connection result. */
-				__( 'Connected to %1$s. %2$s', 'verifycate' ),
-				$this->settings->getWorkspace(),
-				$result['message']
-			);
+			$message = $result['message'];
 
 			if ( 0 === $this->mappings->count() ) {
 				$message .= ' ' . __( 'Next, map a course.', 'verifycate' );
@@ -313,7 +308,7 @@ final class Admin {
 		$this->settings->disconnect();
 		$this->catalog->flush();
 
-		Notices::add( 'success', __( 'Disconnected. The workspace slug and URLs were kept.', 'verifycate' ) );
+		Notices::add( 'success', __( 'Disconnected. The workspace and URLs were kept.', 'verifycate' ) );
 		$this->redirect( 'verifycate' );
 	}
 

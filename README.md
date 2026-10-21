@@ -22,8 +22,9 @@ through the [Verifycate PHP SDK](https://github.com/verifycate/php-sdk).
 
 ## What it does
 
-- **Connection** — save the workspace slug and API key, test the connection,
-  and surface API problems (bad key, plan, permissions) as actionable notices.
+- **Connection** — paste a workspace API key, and the plugin resolves the
+  workspace, checks the key scopes and plan, and tests the connection. API and
+  portal URLs plus an optional workspace override live under advanced settings.
 - **Mappings** — map one course, an entire LMS catalogue, or a custom hook to a
   certificate. Specific-course mappings take precedence over “any course”.
 - **Attributes** — map learner and course data to certificate attributes with
@@ -48,9 +49,9 @@ connection, mapping and issuance.
 1. Upload the plugin zip to `/wp-content/plugins/verifycate/`, or install it
    through the WordPress plugins screen.
 2. Activate the plugin.
-3. Go to **Verifycate → Get started**, paste your workspace slug or dashboard
-   URL and API key, then click **Connect Verifycate**. The plugin tests the
-   connection immediately.
+3. Go to **Verifycate → Get started**, paste a workspace API key, and click
+   **Connect Verifycate**. The plugin finds the workspace, checks the key’s
+   scopes and plan, and tests the connection.
 4. Create at least one certificate in the Verifycate dashboard.
 5. Go to **Verifycate → Mappings** and map a course to that certificate.
 

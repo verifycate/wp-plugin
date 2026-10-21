@@ -113,12 +113,97 @@ final class Settings {
 	}
 
 	/**
+	 * Whether an API key is stored.
+	 *
+	 * @return bool
+	 */
+	public function hasApiKey(): bool {
+		return '' !== $this->getApiKey();
+	}
+
+	/**
 	 * Whether the site has enough configuration to call the API.
 	 *
 	 * @return bool
 	 */
 	public function isConnected(): bool {
 		return '' !== $this->getWorkspace() && '' !== $this->getApiKey();
+	}
+
+	/**
+	 * API key permissions reported by the API.
+	 *
+	 * @return array<int, string>
+	 */
+	public function getPermissions(): array {
+		$value = $this->values['permissions'] ?? array();
+
+		if ( ! is_array( $value ) ) {
+			return array();
+		}
+
+		return array_values( array_map( 'strval', $value ) );
+	}
+
+	/**
+	 * Whether the API key has unrestricted workspace access.
+	 *
+	 * @return bool
+	 */
+	public function hasFullAccess(): bool {
+		if ( ! array_key_exists( 'full_access', $this->values ) && ! array_key_exists( 'permissions', $this->values ) ) {
+			return true;
+		}
+
+		return ! empty( $this->values['full_access'] );
+	}
+
+	/**
+	 * Whether the workspace has an active seat. Older settings are treated as live.
+	 *
+	 * @return bool
+	 */
+	public function isSeatLive(): bool {
+		return ! array_key_exists( 'seat_live', $this->values ) || ! empty( $this->values['seat_live'] );
+	}
+
+	/**
+	 * Whether the stored key can both read and write certificates.
+	 *
+	 * @return bool
+	 */
+	public function canWriteCertificates(): bool {
+		return $this->hasFullAccess() || in_array( 'certificates:write', $this->getPermissions(), true );
+	}
+
+	/**
+	 * Whether the connection is ready to issue certificates.
+	 *
+	 * @return bool
+	 */
+	public function isReadyToIssue(): bool {
+		return $this->isConnected() && $this->isSeatLive() && $this->canWriteCertificates();
+	}
+
+	/**
+	 * Human-readable reason the connection cannot issue, if any.
+	 *
+	 * @return string
+	 */
+	public function connectionIssue(): string {
+		if ( ! $this->isConnected() ) {
+			return '';
+		}
+
+		if ( ! $this->isSeatLive() ) {
+			return __( 'This workspace has no active Verifycate plan. Activate a plan before issuing certificates.', 'verifycate' );
+		}
+
+		if ( ! $this->canWriteCertificates() ) {
+			return __( 'This API key can read certificates but cannot issue them. Create a key with the certificates:write scope and reconnect.', 'verifycate' );
+		}
+
+		return '';
 	}
 
 	/**
@@ -168,9 +253,14 @@ final class Settings {
 	 * @return void
 	 */
 	public function save( array $input ): void {
-		$workspace = isset( $input['workspace'] ) && is_scalar( $input['workspace'] )
-			? self::normalizeWorkspace( (string) $input['workspace'] )
-			: '';
+		$workspace_input = '';
+		if ( isset( $input['workspace_override'] ) && is_scalar( $input['workspace_override'] ) ) {
+			$workspace_input = (string) $input['workspace_override'];
+		} elseif ( isset( $input['workspace'] ) && is_scalar( $input['workspace'] ) ) {
+			$workspace_input = (string) $input['workspace'];
+		}
+
+		$workspace = self::normalizeWorkspace( $workspace_input );
 
 		$api_key = isset( $input['api_key'] ) && is_scalar( $input['api_key'] )
 			? trim( (string) $input['api_key'] )
@@ -184,7 +274,12 @@ final class Settings {
 			? esc_url_raw( (string) $input['portal_url'] )
 			: '';
 
-		$this->values['workspace']   = $workspace;
+		if ( '' !== $workspace ) {
+			$this->values['workspace'] = $workspace;
+		} else {
+			unset( $this->values['workspace'] );
+		}
+
 		$this->values['base_url']    = '' === $base_url ? Config::DEFAULT_BASE_URL : $base_url;
 		$this->values['portal_url']  = '' === $portal_url ? self::DEFAULT_PORTAL_URL : $portal_url;
 		$this->values['delete_data'] = ! empty( $input['delete_data'] );
@@ -202,7 +297,33 @@ final class Settings {
 	 * @return void
 	 */
 	public function disconnect(): void {
-		unset( $this->values['api_key'], $this->values['last_check'] );
+		unset(
+			$this->values['api_key'],
+			$this->values['last_check'],
+			$this->values['permissions'],
+			$this->values['full_access'],
+			$this->values['seat_live'],
+			$this->values['connected_at']
+		);
+
+		$this->persist();
+	}
+
+	/**
+	 * Persist the workspace and API-key metadata resolved from the API.
+	 *
+	 * @param string             $slug Workspace slug.
+	 * @param array<int, string> $permissions API key permissions.
+	 * @param bool               $full_access Whether the key has full access.
+	 * @param bool               $seat_live Whether the workspace has an active seat.
+	 * @return void
+	 */
+	public function setResolvedWorkspace( string $slug, array $permissions, bool $full_access, bool $seat_live ): void {
+		$this->values['workspace']    = sanitize_title( $slug );
+		$this->values['permissions']  = array_values( array_map( 'strval', $permissions ) );
+		$this->values['full_access']  = $full_access;
+		$this->values['seat_live']    = $seat_live;
+		$this->values['connected_at'] = time();
 
 		$this->persist();
 	}

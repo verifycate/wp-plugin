@@ -125,7 +125,7 @@ final class Worker {
 		}
 
 		if ( ! $this->factory->isConfigured() ) {
-			$this->queue->fail( $id, __( 'Verifycate is not connected. Add a workspace slug and API key.', 'verifycate' ), false );
+			$this->queue->fail( $id, __( 'Verifycate is not connected. Add a workspace API key.', 'verifycate' ), false );
 
 			return;
 		}

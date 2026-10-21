@@ -9,10 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Connection setup with encrypted API-key storage, a connection test and
-  actionable errors for invalid keys, missing plans and permission problems.
+- Connection setup with a single API key: the plugin resolves the workspace,
+  checks the key scopes and plan, and enables issuance in one action.
 - Certificate catalogue cache and mapping editor with any-course and
-  course-specific mappings, attribute templates and a token reference.
+  course-specific mappings, searchable course and certificate comboboxes,
+  attribute templates and a token reference.
 - LMS adapters for LearnDash, Tutor LMS, LearnPress, LifterLMS and Sensei, plus
   a documented `verifycate_course_completed` custom hook.
 - Durable issuance queue on custom tables with exponential backoff, retry

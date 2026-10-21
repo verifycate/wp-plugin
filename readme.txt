@@ -70,9 +70,9 @@ A Verifycate account is required for the plugin to issue certificates.
 1. Upload the plugin files to `/wp-content/plugins/verifycate/`, or install it
    through the WordPress plugins screen.
 2. Activate the plugin.
-3. Go to Verifycate > Get started and paste your workspace slug or dashboard
-   URL plus your API key. The plugin tests the connection when you click
-   Connect Verifycate.
+3. Go to Verifycate > Get started, paste a workspace API key, and click Connect
+   Verifycate. The plugin finds the workspace, checks the key scopes and plan,
+   and tests the connection.
 4. Create at least one certificate in the Verifycate dashboard, then map a
    course to it under Verifycate > Mappings.
 5. Optional: add `[verifycate_wallet]` to a learner-facing page, or insert the
@@ -98,8 +98,8 @@ No. You design certificates in the Verifycate dashboard and map to them here.
 
 = Does it work without an API key? =
 
-No. Course-completion issuance requires a workspace slug and API key so the
-plugin can talk to the Verifycate API.
+No. Course-completion issuance requires a workspace API key so the plugin can
+talk to the Verifycate API.
 
 = What happens if the Verifycate API is temporarily unavailable? =
 
