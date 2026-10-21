@@ -50,13 +50,14 @@
 
 	function syncRawAttributes() {
 		var raw = document.getElementById('verifycate-attributes');
+		var rows = document.querySelectorAll('.verifycate-attribute-row');
 		var lines = [];
 
-		if (!raw) {
+		if (!raw || !rows.length) {
 			return;
 		}
 
-		document.querySelectorAll('.verifycate-attribute-row').forEach(function (row) {
+		rows.forEach(function (row) {
 			var input = row.querySelector('[data-attribute-input]');
 			var key = row.getAttribute('data-attribute-key');
 
@@ -66,6 +67,33 @@
 		});
 
 		raw.value = lines.join('\n');
+	}
+
+	function syncRowsFromRaw() {
+		var raw = document.getElementById('verifycate-attributes');
+		var values = {};
+
+		if (!raw) {
+			return;
+		}
+
+		raw.value.split(/\r\n|\r|\n/).forEach(function (line) {
+			var separator = line.indexOf('=');
+
+			if (separator > 0) {
+				values[line.slice(0, separator).trim()] = line.slice(separator + 1).trim();
+			}
+		});
+
+		document.querySelectorAll('.verifycate-attribute-row').forEach(function (row) {
+			var input = row.querySelector('[data-attribute-input]');
+			var key = row.getAttribute('data-attribute-key');
+
+			if (input && key) {
+				input.value = values[key] || '';
+				updateRowPreview(row);
+			}
+		});
 	}
 
 	function updateRowPreview(row) {
@@ -275,6 +303,70 @@
 		return values;
 	}
 
+	function initAttributeViewTabs() {
+		var tablist = document.querySelector('[data-attribute-view-tabs]');
+
+		if (!tablist) {
+			return;
+		}
+
+		var tabs = Array.prototype.slice.call(tablist.querySelectorAll('[role="tab"]'));
+
+		function activate(tab) {
+			tabs.forEach(function (item) {
+				var selected = item === tab;
+				item.setAttribute('aria-selected', selected ? 'true' : 'false');
+				item.setAttribute('tabindex', selected ? '0' : '-1');
+				item.classList.toggle('is-active', selected);
+
+				var panel = document.getElementById(item.getAttribute('aria-controls'));
+				if (panel) {
+					panel.hidden = !selected;
+				}
+			});
+
+			if (tab.id === 'verifycate-attribute-tab-raw') {
+				syncRawAttributes();
+			} else {
+				syncRowsFromRaw();
+			}
+		}
+
+		tabs.forEach(function (tab, index) {
+			tab.addEventListener('click', function () {
+				activate(tab);
+			});
+
+			tab.addEventListener('keydown', function (event) {
+				var next = null;
+
+				if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+					next = tabs[(index + 1) % tabs.length];
+				} else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+					next = tabs[(index - 1 + tabs.length) % tabs.length];
+				} else if (event.key === 'Home') {
+					next = tabs[0];
+				} else if (event.key === 'End') {
+					next = tabs[tabs.length - 1];
+				}
+
+				if (next) {
+					event.preventDefault();
+					next.focus();
+					activate(next);
+				}
+			});
+		});
+
+		var selected = tabs.find(function (tab) {
+			return tab.getAttribute('aria-selected') === 'true';
+		}) || tabs[0];
+
+		if (selected) {
+			activate(selected);
+		}
+	}
+
 	function loadAttributeRows() {
 		var select = document.getElementById('verifycate-certificate');
 		var target = document.querySelector('[data-attribute-rows]');
@@ -288,27 +380,10 @@
 
 		var raw = document.getElementById('verifycate-attributes');
 		if (raw) {
-			raw.addEventListener('input', function () {
-				var values = {};
-				raw.value.split(/\r\n|\r|\n/).forEach(function (line) {
-					var separator = line.indexOf('=');
-
-					if (separator > 0) {
-						values[line.slice(0, separator).trim()] = line.slice(separator + 1).trim();
-					}
-				});
-
-				document.querySelectorAll('.verifycate-attribute-row').forEach(function (row) {
-					var input = row.querySelector('[data-attribute-input]');
-					var key = row.getAttribute('data-attribute-key');
-
-					if (input && key) {
-						input.value = values[key] || '';
-						updateRowPreview(row);
-					}
-				});
-			});
+			raw.addEventListener('input', syncRowsFromRaw);
 		}
+
+		initAttributeViewTabs();
 
 		select.addEventListener('change', function () {
 			var current = collectAttributeValues();

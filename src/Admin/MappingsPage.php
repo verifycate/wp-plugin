@@ -357,21 +357,34 @@ final class MappingsPage {
 					<table class="form-table" role="presentation">
 					<tr>
 						<th scope="row">
-							<label for="verifycate-attributes"><?php esc_html_e( 'Attribute values', 'verifycate' ); ?></label>
+							<label for="verifycate-attributes"><?php esc_html_e( 'Attribute mapping', 'verifycate' ); ?></label>
 						</th>
 						<td>
-							<div class="verifycate-attribute-rows" data-attribute-rows>
-								<?php if ( '' === $attribute_certificate ) : ?>
-									<p class="description"><?php esc_html_e( 'Choose a certificate to load its attributes.', 'verifycate' ); ?></p>
-								<?php elseif ( $attribute_defs === array() ) : ?>
-									<p class="description"><?php esc_html_e( 'This certificate has no declared attributes. Add them in Verifycate, then reload this page.', 'verifycate' ); ?></p>
-								<?php else : ?>
-									<?php $this->renderAttributeRows( $attribute_defs, $attribute_values ); ?>
-								<?php endif; ?>
+							<div class="verifycate-attribute-toolbar">
+								<div class="verifycate-view-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Attribute mapping view', 'verifycate' ); ?>" data-attribute-view-tabs>
+									<button type="button" role="tab" id="verifycate-attribute-tab-visual" aria-controls="verifycate-attribute-panel-visual" aria-selected="true" tabindex="0">
+										<?php esc_html_e( 'Visual', 'verifycate' ); ?>
+									</button>
+									<button type="button" role="tab" id="verifycate-attribute-tab-raw" aria-controls="verifycate-attribute-panel-raw" aria-selected="false" tabindex="-1">
+										<?php esc_html_e( 'Raw', 'verifycate' ); ?>
+									</button>
+								</div>
 							</div>
 
-							<details class="verifycate-raw-attributes">
-								<summary><?php esc_html_e( 'Raw template editor', 'verifycate' ); ?></summary>
+							<div id="verifycate-attribute-panel-visual" role="tabpanel" aria-labelledby="verifycate-attribute-tab-visual">
+								<div class="verifycate-attribute-rows" data-attribute-rows>
+									<?php if ( '' === $attribute_certificate ) : ?>
+										<p class="description"><?php esc_html_e( 'Choose a certificate to load its attributes.', 'verifycate' ); ?></p>
+									<?php elseif ( $attribute_defs === array() ) : ?>
+										<p class="description"><?php esc_html_e( 'This certificate has no declared attributes. Add them in Verifycate, then reload this page.', 'verifycate' ); ?></p>
+									<?php else : ?>
+										<?php $this->renderAttributeRows( $attribute_defs, $attribute_values ); ?>
+									<?php endif; ?>
+								</div>
+								<p class="description"><?php esc_html_e( 'Only attributes declared on the certificate are sent.', 'verifycate' ); ?></p>
+							</div>
+
+							<div id="verifycate-attribute-panel-raw" role="tabpanel" aria-labelledby="verifycate-attribute-tab-raw" hidden>
 								<textarea
 									id="verifycate-attributes"
 									name="attributes"
@@ -380,9 +393,9 @@ final class MappingsPage {
 									placeholder="course_hours = {course_meta:duration}"
 								><?php echo esc_textarea( $this->formatAttributes( $attribute_values ) ); ?></textarea>
 								<p class="description">
-									<?php esc_html_e( 'One attribute per line: key = template. The visual editor keeps this in sync.', 'verifycate' ); ?>
+									<?php esc_html_e( 'One attribute per line: key = value. The visual mapper keeps this in sync.', 'verifycate' ); ?>
 								</p>
-							</details>
+							</div>
 
 							<p class="description">
 								<?php
