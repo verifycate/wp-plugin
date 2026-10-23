@@ -1,0 +1,1255 @@
+# Copyright (C) 2026 Verifycate
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Verifycate 0.1.0\n"
+"Report-Msgid-Bugs-To: https://verifycate.com/support\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-10-23T09:38:55+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: verifycate\n"
+
+#. Plugin Name of the plugin
+#. Author of the plugin
+#: verifycate.php
+#: src/Admin/Admin.php:153
+#: src/Admin/Admin.php:154
+msgid "Verifycate"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: verifycate.php
+msgid "https://verifycate.com/wordpress"
+msgstr ""
+
+#. Description of the plugin
+#: verifycate.php
+msgid "Issue verifiable certificates from your WordPress LMS. Connects LearnDash, Tutor LMS, LearnPress, LifterLMS, Sensei and more to Verifycate."
+msgstr ""
+
+#. Author URI of the plugin
+#: verifycate.php
+msgid "https://verifycate.com"
+msgstr ""
+
+#: src/Admin/Admin.php:164
+#: src/Admin/Admin.php:165
+msgid "Get started"
+msgstr ""
+
+#: src/Admin/Admin.php:173
+#: src/Admin/SettingsPage.php:321
+msgid "Configure Verifycate"
+msgstr ""
+
+#: src/Admin/Admin.php:174
+#: src/Admin/SettingsPage.php:135
+msgid "Configure"
+msgstr ""
+
+#: src/Admin/Admin.php:182
+#: src/Admin/MappingsPage.php:166
+#: src/Admin/SettingsPage.php:163
+msgid "Certificate Mappings"
+msgstr ""
+
+#: src/Admin/Admin.php:183
+msgid "Mappings"
+msgstr ""
+
+#: src/Admin/Admin.php:191
+#: src/Admin/Admin.php:192
+#: src/Admin/LogsPage.php:55
+msgid "Logs"
+msgstr ""
+
+#: src/Admin/Admin.php:248
+msgid "Loading attributes…"
+msgstr ""
+
+#: src/Admin/Admin.php:249
+#: src/Admin/MappingsPage.php:748
+msgid "This certificate has no declared attributes. Add them in Verifycate, then reload this page."
+msgstr ""
+
+#: src/Admin/Admin.php:250
+#: src/Admin/MappingsPage.php:746
+msgid "Choose a certificate to load its attributes."
+msgstr ""
+
+#: src/Admin/Admin.php:251
+#: src/Admin/MappingsPage.php:1005
+msgid "Preview:"
+msgstr ""
+
+#: src/Admin/Admin.php:252
+msgid "Insert token…"
+msgstr ""
+
+#: src/Admin/Admin.php:253
+#: src/Admin/MappingsPage.php:987
+msgid "Insert token:"
+msgstr ""
+
+#: src/Admin/Admin.php:254
+#: src/Admin/MappingsPage.php:993
+msgid "More tokens"
+msgstr ""
+
+#: src/Admin/Admin.php:255
+#: src/Admin/MappingsPage.php:994
+msgid "More tokens…"
+msgstr ""
+
+#: src/Admin/Admin.php:256
+#: src/Admin/MappingsPage.php:216
+#: src/Admin/MappingsPage.php:965
+msgid "Clear"
+msgstr ""
+
+#: src/Admin/Admin.php:258
+msgid "Delete this mapping? Existing issued certificates are not affected."
+msgstr ""
+
+#: src/Admin/Admin.php:259
+msgid "Delete the selected mappings? Existing issued certificates are not affected."
+msgstr ""
+
+#: src/Admin/Admin.php:260
+msgid "Copied"
+msgstr ""
+
+#: src/Admin/Admin.php:323
+msgid "Next, map a course."
+msgstr ""
+
+#: src/Admin/Admin.php:359
+msgid "Disconnected. The workspace and URLs were kept."
+msgstr ""
+
+#: src/Admin/Admin.php:380
+msgid "Choose an LMS, trigger and object before saving."
+msgstr ""
+
+#: src/Admin/Admin.php:447
+msgid "The mapping could not be saved. Check the course and certificate."
+msgstr ""
+
+#: src/Admin/Admin.php:449
+msgid "Mapping saved."
+msgstr ""
+
+#: src/Admin/Admin.php:468
+msgid "Mapping deleted."
+msgstr ""
+
+#: src/Admin/Admin.php:470
+msgid "The mapping could not be deleted."
+msgstr ""
+
+#: src/Admin/Admin.php:499
+msgid "Choose a bulk action and at least one mapping."
+msgstr ""
+
+#. translators: %s: number of mappings.
+#: src/Admin/Admin.php:515
+#, php-format
+msgid "%s mapping deleted."
+msgid_plural "%s mappings deleted."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/Admin.php:520
+msgid "The selected mappings could not be deleted."
+msgstr ""
+
+#: src/Admin/Admin.php:554
+msgid "Job queued for retry."
+msgstr ""
+
+#: src/Admin/Admin.php:556
+msgid "The job could not be retried."
+msgstr ""
+
+#. translators: %d: number of jobs.
+#: src/Admin/Admin.php:576
+#, php-format
+msgid "%d failed job queued for retry."
+msgid_plural "%d failed jobs queued for retry."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/Admin.php:593
+msgid "Logs cleared."
+msgstr ""
+
+#: src/Admin/Admin.php:607
+#: src/Admin/Admin.php:628
+msgid "You are not allowed to do this."
+msgstr ""
+
+#: src/Admin/Admin.php:613
+msgid "Choose a certificate first."
+msgstr ""
+
+#. translators: %s: LMS name.
+#: src/Admin/Admin.php:646
+#: src/Admin/MappingsPage.php:872
+#, php-format
+msgid "Any %s course"
+msgstr ""
+
+#: src/Admin/Admin.php:665
+msgid "Any quiz in any course"
+msgstr ""
+
+#: src/Admin/Admin.php:665
+msgid "Any lesson in any course"
+msgstr ""
+
+#: src/Admin/Admin.php:691
+msgid "Any quiz in this course"
+msgstr ""
+
+#: src/Admin/Admin.php:691
+msgid "Any lesson in this course"
+msgstr ""
+
+#: src/Admin/Admin.php:726
+msgid "You are not allowed to access this page."
+msgstr ""
+
+#: src/Admin/LogsPage.php:57
+msgid "Issuance runs through a durable queue. Failed jobs can be retried after fixing the connection, the certificate or the mapping."
+msgstr ""
+
+#: src/Admin/LogsPage.php:74
+msgid "Retry all failed jobs"
+msgstr ""
+
+#: src/Admin/LogsPage.php:81
+msgid "Clear logs"
+msgstr ""
+
+#: src/Admin/LogsPage.php:85
+msgid "Recent jobs"
+msgstr ""
+
+#: src/Admin/LogsPage.php:88
+msgid "No issuance jobs yet."
+msgstr ""
+
+#: src/Admin/LogsPage.php:93
+msgid "Job"
+msgstr ""
+
+#: src/Admin/LogsPage.php:94
+#: src/Admin/MappingsPage.php:264
+#: src/Admin/MappingsPage.php:652
+msgid "Status"
+msgstr ""
+
+#: src/Admin/LogsPage.php:95
+msgid "Attempts"
+msgstr ""
+
+#: src/Admin/LogsPage.php:96
+msgid "Certificate issue"
+msgstr ""
+
+#: src/Admin/LogsPage.php:97
+msgid "Last error"
+msgstr ""
+
+#: src/Admin/LogsPage.php:98
+msgid "Updated"
+msgstr ""
+
+#: src/Admin/LogsPage.php:99
+#: src/Admin/MappingsPage.php:268
+msgid "Actions"
+msgstr ""
+
+#: src/Admin/LogsPage.php:133
+msgid "Retry"
+msgstr ""
+
+#: src/Admin/LogsPage.php:145
+msgid "Activity log"
+msgstr ""
+
+#: src/Admin/LogsPage.php:149
+#: src/Admin/LogsPage.php:168
+msgid "Level"
+msgstr ""
+
+#: src/Admin/LogsPage.php:151
+msgid "All levels"
+msgstr ""
+
+#: src/Admin/LogsPage.php:158
+msgid "Filter"
+msgstr ""
+
+#: src/Admin/LogsPage.php:162
+msgid "No log entries yet."
+msgstr ""
+
+#: src/Admin/LogsPage.php:167
+msgid "Time"
+msgstr ""
+
+#: src/Admin/LogsPage.php:169
+msgid "Message"
+msgstr ""
+
+#: src/Admin/LogsPage.php:170
+msgid "Context"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:163
+msgid "Add Certificate Mapping"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:163
+msgid "Edit Certificate Mapping"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:168
+msgid "Add Mapping"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:173
+msgid "Choose the LMS, completion trigger and certificate. One mapping can cover an entire catalogue or a group of items with the “Any” options."
+msgstr ""
+
+#. translators: %s: settings link.
+#: src/Admin/MappingsPage.php:184
+#, php-format
+msgid "Connect your workspace before issuing certificates. %s"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:185
+msgid "Open Get started"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:198
+msgid "Select bulk action"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:200
+msgid "Bulk actions"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:201
+msgid "Delete permanently"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:203
+msgid "Apply"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:212
+msgid "Search certificate mappings"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:213
+msgid "Search course or certificate…"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:214
+msgid "Search"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:226
+msgid "No mappings found"
+msgstr ""
+
+#. translators: %s: search term.
+#: src/Admin/MappingsPage.php:231
+#, php-format
+msgid "No certificate mappings match “%s”."
+msgstr ""
+
+#: src/Admin/MappingsPage.php:236
+msgid "Clear search"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:241
+#: src/Admin/SettingsPage.php:154
+msgid "Map your first course"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:242
+msgid "Choose the LMS, trigger and course, quiz or lesson to issue a certificate for."
+msgstr ""
+
+#: src/Admin/MappingsPage.php:244
+msgid "Add your first mapping"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:258
+msgid "Select all mappings"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:261
+#: src/Admin/MappingsPage.php:487
+msgid "Course"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:262
+msgid "Certificate Name"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:263
+#: src/Admin/MappingsPage.php:465
+msgid "Trigger"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:265
+msgid "Attributes"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:266
+#: src/Admin/MappingsPage.php:609
+msgid "Repeat completions"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:267
+#: src/Admin/MappingsPage.php:628
+msgid "Automatic release"
+msgstr ""
+
+#. translators: %s: course label.
+#: src/Admin/MappingsPage.php:291
+#, php-format
+msgid "Select %s"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:302
+msgid "Enabled"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:302
+msgid "Disabled"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:309
+#: src/Admin/MappingsPage.php:620
+msgid "Issue again"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:310
+#: src/Admin/MappingsPage.php:617
+msgid "Skip duplicates"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:313
+msgid "Yes"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:313
+msgid "No"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:316
+msgid "Edit"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:323
+#: src/Admin/MappingsPage.php:703
+msgid "Delete"
+msgstr ""
+
+#. translators: %s: mapping count.
+#: src/Admin/MappingsPage.php:352
+#, php-format
+msgid "%s mapping"
+msgid_plural "%s mappings"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/MappingsPage.php:395
+msgid "Choose the completion and the certificate to issue. Options on the right control repeat completions and release."
+msgstr ""
+
+#: src/Admin/MappingsPage.php:407
+msgid "Issue Criteria"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:412
+msgid "LMS plugin"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:414
+msgid "Search LMS plugins…"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:414
+msgid "No matching plugins."
+msgstr ""
+
+#: src/Admin/MappingsPage.php:417
+msgid "Custom hook"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:423
+#: src/Admin/MappingsPage.php:480
+#: src/Admin/MappingsPage.php:494
+#: src/Admin/MappingsPage.php:573
+msgid "Show options"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:428
+msgid "Choose the plugin that reports the completion."
+msgstr ""
+
+#: src/Admin/MappingsPage.php:434
+msgid "Custom event name"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:445
+#: src/Issuance/AttributeMapper.php:102
+msgid "Course ID"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:455
+msgid "Leave the course ID at 0 to match any custom completion."
+msgstr ""
+
+#: src/Admin/MappingsPage.php:459
+msgid "The event name must match the third argument of do_action( 'verifycate_course_completed', … )."
+msgstr ""
+
+#: src/Admin/MappingsPage.php:467
+msgid "Search triggers…"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:467
+msgid "No matching triggers."
+msgstr ""
+
+#: src/Admin/MappingsPage.php:469
+#: src/Admin/MappingsPage.php:921
+msgid "Course completed"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:472
+#: src/Admin/MappingsPage.php:915
+msgid "Quiz passed"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:475
+#: src/Admin/MappingsPage.php:918
+msgid "Lesson completed"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:489
+msgid "Search objects…"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:489
+msgid "No matching objects."
+msgstr ""
+
+#: src/Admin/MappingsPage.php:490
+msgid "Loading options…"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:499
+msgid "Select the course, quiz or lesson. “Any” options cover multiple items."
+msgstr ""
+
+#: src/Admin/MappingsPage.php:504
+msgid "Minimum quiz score (%)"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:516
+msgid "Leave 0 to issue on any passing quiz."
+msgstr ""
+
+#: src/Admin/MappingsPage.php:525
+msgid "Certificate"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:530
+msgid "Issue this certificate"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:533
+msgid "No active certificates. Publish one in Verifycate before issuing."
+msgstr ""
+
+#: src/Admin/MappingsPage.php:538
+msgid "The certificate list could not be loaded. Check the Configure page and try again."
+msgstr ""
+
+#: src/Admin/MappingsPage.php:542
+msgid "Search certificates…"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:542
+msgid "No matching certificates."
+msgstr ""
+
+#: src/Admin/MappingsPage.php:543
+msgid "Select a certificate…"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:578
+msgid "Draft certificates queue recipients but cannot be released until the certificate is published in Verifycate."
+msgstr ""
+
+#: src/Admin/MappingsPage.php:581
+msgid "Create a certificate in Verifycate"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:590
+msgid "Certificate attributes"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:600
+msgid "Mapping actions"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:603
+msgid "Publish"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:612
+msgid "Skip issues once per learner. Issue again supports recertification."
+msgstr ""
+
+#: src/Admin/MappingsPage.php:631
+msgid "When enabled, certificates are issued immediately after a recipient is imported. When disabled, recipients are queued for manual release from Verifycate."
+msgstr ""
+
+#: src/Admin/MappingsPage.php:673
+msgid "Mapping ID"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:674
+msgid "New"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:678
+msgid "Created"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:682
+msgid "Last updated"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:687
+msgid "Timestamps"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:688
+msgid "Recorded on save"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:708
+msgid "Add mapping"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:708
+msgid "Save mapping"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:732
+msgid "Attribute mapping"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:733
+msgid "Attribute mapping view"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:735
+msgid "Visual"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:738
+msgid "Raw"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:753
+msgid "Only attributes declared on the certificate are sent."
+msgstr ""
+
+#: src/Admin/MappingsPage.php:765
+msgid "One attribute per line: key = value. The visual mapper keeps this in sync."
+msgstr ""
+
+#. translators: 1: user meta token, 2: course meta token, 3: context token.
+#: src/Admin/MappingsPage.php:774
+#, php-format
+msgid "Need a value from metadata? Use %1$s, %2$s or %3$s."
+msgstr ""
+
+#: src/Admin/MappingsPage.php:784
+msgid "Token reference"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:785
+msgid "Tokens are filled in when the certificate is issued. Unknown tokens are left as-is so typos are visible."
+msgstr ""
+
+#. translators: 1: event name, 2: course id or "any".
+#: src/Admin/MappingsPage.php:863
+#, php-format
+msgid "Custom hook: %1$s (course %2$s)"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:865
+msgid "any"
+msgstr ""
+
+#. translators: 1: LMS name, 2: course title.
+#: src/Admin/MappingsPage.php:882
+#, php-format
+msgid "%1$s: %2$s"
+msgstr ""
+
+#. translators: %s: custom event name.
+#: src/Admin/MappingsPage.php:908
+#, php-format
+msgid "Custom: %s"
+msgstr ""
+
+#. translators: 1: trigger name, 2: quiz or lesson title.
+#: src/Admin/MappingsPage.php:933
+#, php-format
+msgid "%1$s — %2$s"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:973
+msgid "e.g. {course_title}"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:979
+msgid "Learner name"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:980
+msgid "Email"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:981
+#: src/Issuance/AttributeMapper.php:101
+msgid "Course title"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:982
+msgid "Date"
+msgstr ""
+
+#: src/Admin/MappingsPage.php:983
+msgid "Score"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:105
+msgid "Get started with Verifycate"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:109
+msgid "Connect your workspace, map a course, and Verifycate issues the certificate when a learner completes it."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:114
+#: src/Admin/SettingsPage.php:328
+msgid "This server has neither the sodium nor the openssl PHP extension, so the API key cannot be encrypted at rest. Ask your host to enable one of them."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:131
+#: src/Admin/SettingsPage.php:291
+#: src/Admin/SettingsPage.php:491
+msgid "Connect Verifycate"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:132
+msgid "Your workspace API key is stored encrypted."
+msgstr ""
+
+#. translators: %d: number of mappings.
+#: src/Admin/SettingsPage.php:147
+#, php-format
+msgid "%d certificate mapping"
+msgid_plural "%d certificate mappings"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/SettingsPage.php:152
+msgid "Manage your certificate mappings."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:155
+#: src/Admin/SettingsPage.php:236
+msgid "Choose a course and the certificate to issue when it is completed."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:157
+#: src/Admin/SettingsPage.php:235
+#: src/Admin/SettingsPage.php:278
+msgid "Map a course"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:173
+msgid "How learners receive certificates"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:174
+msgid "Verifycate sends certificates by email, and every certificate gets its own public verification page."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:175
+msgid "If you want to embed or show certificates anywhere on your site — pages, widgets, or other templates — you can use the shortcodes below. This is optional."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:179
+msgid "Shortcode"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:180
+msgid "Description"
+msgstr ""
+
+#. translators: 1: title attribute, 2: empty_text attribute, 3: limit attribute.
+#: src/Admin/SettingsPage.php:189
+#, php-format
+msgid "Shows the logged-in learner’s certificates from their Verifycate recipient record, including status, issue date and a View certificate link. Use it on a “My Certificates” page or learner dashboard. Optional attributes: %1$s, %2$s and %3$s."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:197
+msgid "Embeds one certificate card by public ID. Use it on a certificate landing page or a page linked from an email."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:201
+msgid "Shows a public form for looking up a certificate by public ID. Use it on a “Verify a certificate” page."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:214
+#: src/Admin/SettingsPage.php:397
+msgid "Create an API key"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:215
+msgid "Sign in and create a key with the certificates:read and certificates:write scopes."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:218
+msgid "Open API keys in Verifycate"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:218
+#: src/Admin/SettingsPage.php:281
+msgid "Open Verifycate"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:227
+msgid "Paste it in the connection panel"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:228
+msgid "We will detect your workspace and check the key’s permissions automatically."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:247
+#: src/Admin/SettingsPage.php:341
+msgid "Connection"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:250
+#: src/Admin/SettingsPage.php:271
+#: src/Admin/SettingsPage.php:344
+msgid "Connected"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:250
+#: src/Admin/SettingsPage.php:344
+msgid "Needs attention"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:255
+msgid "Test connection again"
+msgstr ""
+
+#. translators: %s: workspace slug.
+#: src/Admin/SettingsPage.php:267
+#, php-format
+msgid "Connected to %s"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:294
+msgid "Paste a workspace API key. We will detect the workspace and check its permissions automatically."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:323
+msgid "Manage the workspace connection, API key and environment settings."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:351
+msgid "Workspace"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:379
+msgid "API key"
+msgstr ""
+
+#. translators: %s: API keys link.
+#: src/Admin/SettingsPage.php:396
+#, php-format
+msgid "Paste a key with the certificates:read and certificates:write scopes. We will find your workspace automatically. %s"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:402
+msgid "Leave this blank to keep the stored key."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:410
+msgid "Advanced settings"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:414
+msgid "Workspace override"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:427
+msgid "Leave blank to detect the workspace from the API key. Paste a slug or dashboard URL only if you need to override it."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:433
+msgid "API base URL"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:443
+msgid "Only change this if Verifycate support asked you to use another environment."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:448
+msgid "Verification page base URL"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:458
+msgid "Used for “View certificate” links in the wallet."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:462
+msgid "Uninstall"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:472
+msgid "Delete settings, mappings, queue history and logs when the plugin is uninstalled."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:486
+msgid "Disconnect"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:491
+msgid "Save & test connection"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:505
+msgid "Copy shortcode"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:539
+msgid "Course plugins"
+msgstr ""
+
+#. translators: %d: number of active integrations.
+#: src/Admin/SettingsPage.php:547
+#, php-format
+msgid "%d integration is active."
+msgid_plural "%d integrations are active."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/SettingsPage.php:558
+#: src/Frontend/Shortcodes.php:256
+#: src/Frontend/Wallet.php:338
+msgid "Active"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:558
+msgid "Not active"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:566
+msgid "Using another plugin?"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:567
+msgid "Call the custom hook from your own code, then create a mapping for “Custom hook”."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:569
+msgid "Pass a third argument to name the event, and a fourth array for course_title, score or extra context tokens."
+msgstr ""
+
+#. translators: %s: date and time.
+#: src/Admin/SettingsPage.php:589
+#, php-format
+msgid "Checked %s."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:597
+msgid "Run a test to confirm the connection."
+msgstr ""
+
+#: src/Api/ClientFactory.php:96
+msgid "Paste a workspace API key before connecting."
+msgstr ""
+
+#: src/Api/ClientFactory.php:119
+#: src/Support/Settings.php:199
+msgid "This workspace has no active Verifycate plan. Activate a plan before issuing certificates."
+msgstr ""
+
+#: src/Api/ClientFactory.php:125
+#: src/Support/Settings.php:203
+msgid "This API key can read certificates but cannot issue them. Create a key with the certificates:write scope and reconnect."
+msgstr ""
+
+#. translators: 1: workspace name, 2: certificate count message.
+#: src/Api/ClientFactory.php:134
+#, php-format
+msgid "Connected to %1$s. %2$s"
+msgstr ""
+
+#. translators: %d: number of certificates in the workspace.
+#: src/Api/ClientFactory.php:138
+#, php-format
+msgid "%d certificate is available."
+msgid_plural "%d certificates are available."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %s: transport error message.
+#: src/Api/ClientFactory.php:164
+#, php-format
+msgid "Could not reach the Verifycate API: %s"
+msgstr ""
+
+#: src/Api/ClientFactory.php:174
+msgid "The Verifycate API returned an unexpected response. Check the Logs screen for details."
+msgstr ""
+
+#: src/Api/ClientFactory.php:194
+msgid "The API key was rejected. Check that it belongs to this workspace and has not been revoked."
+msgstr ""
+
+#: src/Api/ClientFactory.php:198
+msgid "This workspace needs an active Verifycate plan before certificates can be issued."
+msgstr ""
+
+#: src/Api/ClientFactory.php:202
+msgid "The API key is valid but does not have permission to read certificates."
+msgstr ""
+
+#. translators: %d: HTTP status code.
+#: src/Api/ClientFactory.php:212
+#, php-format
+msgid "The Verifycate API returned HTTP %d."
+msgstr ""
+
+#: src/Frontend/Shortcodes.php:86
+msgid "Add a public_id to the [verifycate_certificate] shortcode."
+msgstr ""
+
+#: src/Frontend/Shortcodes.php:90
+#: src/Frontend/Shortcodes.php:119
+msgid "Connect Verifycate before using this shortcode."
+msgstr ""
+
+#: src/Frontend/Shortcodes.php:111
+msgid "Verify a certificate"
+msgstr ""
+
+#: src/Frontend/Shortcodes.php:112
+msgid "Verify"
+msgstr ""
+
+#: src/Frontend/Shortcodes.php:133
+#: src/Frontend/Shortcodes.php:134
+msgid "Certificate public ID"
+msgstr ""
+
+#: src/Frontend/Shortcodes.php:183
+msgid "No certificate was found with that public ID."
+msgstr ""
+
+#: src/Frontend/Shortcodes.php:199
+msgid "Certificate details are temporarily unavailable. Please try again later."
+msgstr ""
+
+#. translators: %s: issue date.
+#: src/Frontend/Shortcodes.php:244
+#: src/Frontend/Wallet.php:329
+#, php-format
+msgid "Issued %s"
+msgstr ""
+
+#. translators: %s: expiry date.
+#: src/Frontend/Shortcodes.php:252
+#, php-format
+msgid "Expires %s"
+msgstr ""
+
+#: src/Frontend/Shortcodes.php:256
+#: src/Frontend/Wallet.php:336
+msgid "Expired"
+msgstr ""
+
+#: src/Frontend/Shortcodes.php:272
+#: src/Frontend/Wallet.php:349
+msgid "View certificate"
+msgstr ""
+
+#: src/Frontend/Shortcodes.php:274
+msgid "Download PDF"
+msgstr ""
+
+#: src/Frontend/Wallet.php:80
+msgid "Verifycate Wallet"
+msgstr ""
+
+#: src/Frontend/Wallet.php:83
+msgid "Show the logged-in learner their Verifycate certificates."
+msgstr ""
+
+#: src/Frontend/Wallet.php:87
+#: src/Frontend/Wallet.php:131
+#: src/Frontend/Wallet.php:171
+msgid "My certificates"
+msgstr ""
+
+#: src/Frontend/Wallet.php:91
+#: src/Frontend/Wallet.php:132
+#: src/Frontend/Wallet.php:172
+msgid "No certificates yet."
+msgstr ""
+
+#. translators: %s: login link.
+#: src/Frontend/Wallet.php:181
+#, php-format
+msgid "Please %s to see your certificates."
+msgstr ""
+
+#: src/Frontend/Wallet.php:182
+msgid "log in"
+msgstr ""
+
+#: src/Frontend/Wallet.php:202
+#: src/Frontend/Wallet.php:310
+msgid "Certificates are temporarily unavailable. Please try again later."
+msgstr ""
+
+#: src/Frontend/Wallet.php:334
+msgid "Awaiting release"
+msgstr ""
+
+#: src/Install.php:208
+msgid "Every minute (Verifycate queue)"
+msgstr ""
+
+#: src/Issuance/AttributeMapper.php:97
+msgid "Learner display name"
+msgstr ""
+
+#: src/Issuance/AttributeMapper.php:98
+msgid "Learner email address"
+msgstr ""
+
+#: src/Issuance/AttributeMapper.php:99
+msgid "Learner username"
+msgstr ""
+
+#: src/Issuance/AttributeMapper.php:100
+msgid "WordPress user ID"
+msgstr ""
+
+#: src/Issuance/AttributeMapper.php:103
+msgid "Completion date (site format)"
+msgstr ""
+
+#: src/Issuance/AttributeMapper.php:104
+msgid "Completion date (YYYY-MM-DD)"
+msgstr ""
+
+#: src/Issuance/AttributeMapper.php:105
+msgid "Score, when the LMS provides one"
+msgstr ""
+
+#: src/Issuance/AttributeMapper.php:106
+msgid "Site name"
+msgstr ""
+
+#: src/Issuance/AttributeMapper.php:107
+msgid "Site URL"
+msgstr ""
+
+#: src/Issuance/AttributeMapper.php:108
+msgid "Any user meta value"
+msgstr ""
+
+#: src/Issuance/AttributeMapper.php:109
+msgid "Any course meta value"
+msgstr ""
+
+#: src/Issuance/AttributeMapper.php:110
+msgid "A value passed by a custom hook"
+msgstr ""
+
+#: src/Issuance/Worker.php:104
+msgid "The queued job payload is invalid."
+msgstr ""
+
+#: src/Issuance/Worker.php:116
+msgid "The mapping has no certificate."
+msgstr ""
+
+#: src/Issuance/Worker.php:122
+msgid "The learner no longer has a valid email address."
+msgstr ""
+
+#: src/Issuance/Worker.php:128
+msgid "Verifycate is not connected. Add a workspace API key."
+msgstr ""
+
+#: src/Issuance/Worker.php:249
+msgid "The API accepted the import but returned no issue."
+msgstr ""
+
+#: src/Issuance/Worker.php:315
+msgid "The workspace needs an active plan before certificates can be issued."
+msgstr ""
+
+#: src/Issuance/Worker.php:319
+msgid "The workspace API key was rejected. Reconnect Verifycate in Settings."
+msgstr ""
+
+#: src/Issuance/Worker.php:323
+msgid "The API key does not have permission to issue certificates."
+msgstr ""
+
+#. translators: 1: required PHP version, 2: current PHP version.
+#: src/Support/Requirements.php:75
+#, php-format
+msgid "Verifycate requires PHP %1$s or higher. This site is running PHP %2$s."
+msgstr ""
+
+#. translators: 1: required WordPress version, 2: current WordPress version.
+#: src/Support/Requirements.php:100
+#, php-format
+msgid "Verifycate requires WordPress %1$s or higher. This site is running WordPress %2$s."
+msgstr ""
+
+#: src/Support/Requirements.php:120
+msgid "Verifycate is missing its API client. Reinstall the plugin from a release build, or run composer install when working from a checkout."
+msgstr ""

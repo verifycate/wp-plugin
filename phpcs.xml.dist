@@ -21,6 +21,14 @@
 	<rule ref="WordPress">
 		<exclude name="Generic.Arrays.DisallowShortArraySyntax"/>
 		<exclude name="WordPress.PHP.YodaConditions.NotYoda"/>
+		<!--
+			Namespaced classes are PSR-4: file names match class names and
+			members use camelCase. Global functions and hooks still follow the
+			WordPress prefix rules below.
+		-->
+		<exclude name="WordPress.Files.FileName"/>
+		<exclude name="WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid"/>
+		<exclude name="WordPress.NamingConventions.ValidVariableName"/>
 	</rule>
 	<rule ref="PHPCompatibilityWP"/>
 

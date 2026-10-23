@@ -1,16 +1,16 @@
 # Files excluded from the distributed plugin zip (wordpress.org).
 #
-# Note: `/vendor` is excluded while the plugin has no runtime Composer
-# dependencies. Once runtime dependencies are added, ship a scoped build
-# (PHP-Scoper/Mozart) of `vendor/` instead of excluding it.
+# Runtime dependencies are installed with `composer install --no-dev` and the
+# Verifycate PHP SDK lives in vendor/. `bin/build-plugin.sh` uses this file with
+# rsync and then zips the result.
 
 .git
 .github
 .wordpress-org
 bin
+build
 node_modules
 tests
-vendor
 composer.json
 composer.lock
 package.json
@@ -19,12 +19,35 @@ pnpm-lock.yaml
 phpcs.xml.dist
 phpstan.neon.dist
 phpunit.xml.dist
-wp-env.json
+.wp-env.json
 .distignore
 .svnignore
 .gitignore
 .gitattributes
 .editorconfig
+.phpunit.result.cache
+.phpunit.cache
+CHANGELOG.md
+languages/.gitkeep
 CODE_OF_CONDUCT.md
 CONTRIBUTING.md
+README.md
 SECURITY.md
+
+# Trim the bundled SDK to its runtime files.
+vendor/verifycate/php-sdk/tests
+vendor/verifycate/php-sdk/openapi
+vendor/verifycate/php-sdk/scripts
+vendor/verifycate/php-sdk/vendor
+vendor/verifycate/php-sdk/.git
+vendor/verifycate/php-sdk/.github
+vendor/verifycate/php-sdk/.editorconfig
+vendor/verifycate/php-sdk/.gitignore
+vendor/verifycate/php-sdk/phpcs.xml.dist
+vendor/verifycate/php-sdk/phpstan.neon.dist
+vendor/verifycate/php-sdk/phpunit.xml.dist
+vendor/verifycate/php-sdk/README.md
+vendor/verifycate/php-sdk/CHANGELOG.md
+vendor/verifycate/php-sdk/CONTRIBUTING.md
+vendor/verifycate/php-sdk/SECURITY.md
+vendor/verifycate/php-sdk/composer.json

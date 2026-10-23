@@ -1,0 +1,71 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to release, for example v0.1.0
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    name: Build and publish plugin zip
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          coverage: none
+          tools: composer
+
+      - name: Check out the private PHP SDK
+        env:
+          SDK_DEPLOY_KEY: ${{ secrets.VERIFYCATE_SDK_DEPLOY_KEY }}
+        run: |
+          if [ -z "$SDK_DEPLOY_KEY" ]; then
+            echo "::error::VERIFYCATE_SDK_DEPLOY_KEY is not set. Add the read-only deploy key for verifycate/php-sdk."
+            exit 1
+          fi
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$SDK_DEPLOY_KEY" > "$HOME/.ssh/verifycate_sdk"
+          chmod 600 "$HOME/.ssh/verifycate_sdk"
+          ssh-keyscan -t ed25519 github.com >> "$HOME/.ssh/known_hosts"
+          GIT_SSH_COMMAND="ssh -i $HOME/.ssh/verifycate_sdk -o IdentitiesOnly=yes" \
+            git clone --depth=1 git@github.com:verifycate/php-sdk.git ../php-sdk
+
+      - name: Build the distributable plugin zip
+        run: composer build
+
+      - name: Verify the zip
+        run: |
+          test -s build/verifycate.zip
+          unzip -l build/verifycate.zip | grep -q 'verifycate/verifycate.php'
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "build/verifycate.zip#verifycate.zip" --clobber
+          else
+            gh release create "$RELEASE_TAG" \
+              "build/verifycate.zip#verifycate.zip" \
+              --title "Verifycate ${RELEASE_TAG#v}" \
+              --generate-notes \
+              --latest
+          fi

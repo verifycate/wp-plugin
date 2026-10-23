@@ -19,6 +19,7 @@ jobs:
           - '8.1'
           - '8.2'
           - '8.3'
+          - '8.4'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,6 +30,24 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: none
           tools: composer
+
+      - name: Check out the private PHP SDK
+        env:
+          SDK_DEPLOY_KEY: ${{ secrets.VERIFYCATE_SDK_DEPLOY_KEY }}
+        run: |
+          if [ -z "$SDK_DEPLOY_KEY" ]; then
+            echo "::error::VERIFYCATE_SDK_DEPLOY_KEY is not set. Add the read-only deploy key for verifycate/php-sdk."
+            exit 1
+          fi
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$SDK_DEPLOY_KEY" > "$HOME/.ssh/verifycate_sdk"
+          chmod 600 "$HOME/.ssh/verifycate_sdk"
+          ssh-keyscan -t ed25519 github.com >> "$HOME/.ssh/known_hosts"
+          GIT_SSH_COMMAND="ssh -i $HOME/.ssh/verifycate_sdk -o IdentitiesOnly=yes" \
+            git clone --depth=1 git@github.com:verifycate/php-sdk.git ../php-sdk
+
+      - name: Validate Composer metadata
+        run: composer validate --strict
 
       - name: Install Composer dependencies
         run: composer install --prefer-dist --no-progress
@@ -56,12 +75,72 @@ jobs:
           coverage: none
           tools: composer
 
-      - name: Install production autoloader
-        run: composer install --prefer-dist --no-progress --no-dev
+      - name: Check out the private PHP SDK
+        env:
+          SDK_DEPLOY_KEY: ${{ secrets.VERIFYCATE_SDK_DEPLOY_KEY }}
+        run: |
+          if [ -z "$SDK_DEPLOY_KEY" ]; then
+            echo "::error::VERIFYCATE_SDK_DEPLOY_KEY is not set. Add the read-only deploy key for verifycate/php-sdk."
+            exit 1
+          fi
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$SDK_DEPLOY_KEY" > "$HOME/.ssh/verifycate_sdk"
+          chmod 600 "$HOME/.ssh/verifycate_sdk"
+          ssh-keyscan -t ed25519 github.com >> "$HOME/.ssh/known_hosts"
+          GIT_SSH_COMMAND="ssh -i $HOME/.ssh/verifycate_sdk -o IdentitiesOnly=yes" \
+            git clone --depth=1 git@github.com:verifycate/php-sdk.git ../php-sdk
+
+      - name: Build the distributable plugin
+        run: composer build
+
+      - name: Extract the plugin
+        run: |
+          rm -rf build/check
+          mkdir -p build/check
+          unzip -q build/verifycate.zip -d build/check
 
       - name: Run Plugin Check
         uses: wordpress/plugin-check-action@v1
         with:
           slug: verifycate
-          build-directory: '.'
-          exclude-directories: 'vendor,node_modules,tests,.github,bin,build'
+          build-dir: build/check/verifycate
+          exclude-directories: 'vendor'
+
+  package:
+    name: Package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          coverage: none
+          tools: composer
+
+      - name: Check out the private PHP SDK
+        env:
+          SDK_DEPLOY_KEY: ${{ secrets.VERIFYCATE_SDK_DEPLOY_KEY }}
+        run: |
+          if [ -z "$SDK_DEPLOY_KEY" ]; then
+            echo "::error::VERIFYCATE_SDK_DEPLOY_KEY is not set. Add the read-only deploy key for verifycate/php-sdk."
+            exit 1
+          fi
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$SDK_DEPLOY_KEY" > "$HOME/.ssh/verifycate_sdk"
+          chmod 600 "$HOME/.ssh/verifycate_sdk"
+          ssh-keyscan -t ed25519 github.com >> "$HOME/.ssh/known_hosts"
+          GIT_SSH_COMMAND="ssh -i $HOME/.ssh/verifycate_sdk -o IdentitiesOnly=yes" \
+            git clone --depth=1 git@github.com:verifycate/php-sdk.git ../php-sdk
+
+      - name: Build the distributable plugin zip
+        run: composer build
+
+      - name: Upload the plugin zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: verifycate-plugin
+          path: build/verifycate.zip
+          if-no-files-found: error
