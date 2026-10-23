@@ -33,7 +33,7 @@ function seed() {
 		id: 'cert-1',
 		name: 'Leadership Essentials',
 		status: 'active',
-		description: 'Awarded for completing the leadership programme.',
+		description: 'Awarded for completing the leadership essentials programme.',
 		certificate_type: 'course',
 		level: 'intermediate',
 		duration: '5 days',
@@ -48,7 +48,7 @@ function seed() {
 	});
 	state.certificates.set('cert-draft', {
 		id: 'cert-draft',
-		name: 'Draft Certificate',
+		name: 'AI for Managers (Draft)',
 		status: 'draft',
 		description: 'Not published yet.',
 		certificate_type: 'certificate',
@@ -62,10 +62,10 @@ function seed() {
 	});
 
 	const lmsCertificates = {
-		'cert-tutor': 'Tutor Leadership Certificate',
-		'cert-learnpress': 'LearnPress Leadership Certificate',
-		'cert-lifterlms': 'LifterLMS Leadership Certificate',
-		'cert-sensei': 'Sensei Leadership Certificate',
+		'cert-tutor': 'Inclusive Leadership Certificate',
+		'cert-learnpress': 'Coaching Excellence Certificate',
+		'cert-lifterlms': 'Data Storytelling Certificate',
+		'cert-sensei': 'Customer Discovery Certificate',
 	};
 
 	for (const [id, name] of Object.entries(lmsCertificates)) {
@@ -217,6 +217,35 @@ async function handle(request, response) {
 
 	const body = request.method === 'POST' ? await readBody(request) : {};
 	const workspace = `/api/v1/workspaces/${WORKSPACE}`;
+
+	const publicCertificateMatch = path.match( /^\/api\/v1\/certificates\/([^/]+)$/ );
+	if ( publicCertificateMatch && request.method === 'GET' ) {
+		const publicId = decodeURIComponent( publicCertificateMatch[1] );
+		const issue = [...state.issues.values()].find( ( candidate ) => candidate.public_id === publicId );
+
+		if ( ! issue ) {
+			problem( response, 404, 'No certificate was found with that public ID.', 'not_found' );
+			return;
+		}
+
+		const certificate = state.certificates.get( issue.certificate_id );
+		send( response, 200, {
+			public_id: issue.public_id,
+			status: issue.status,
+			recipient_name: issue.recipient_name,
+			certificate: certificate ? summary( certificate ) : {},
+			design_version: 1,
+			issued_at: issue.issued_at,
+			expires_at: issue.expires_at,
+			png_url: '',
+			pdf_url: '',
+			attributes: certificate ? Object.fromEntries( certificate.attributes.map( ( attribute ) => [ attribute.key, attribute.label ] ) ) : {},
+			design: {},
+			blockchain: null,
+			nft: null,
+		} );
+		return;
+	}
 
 	if (path === '/api/v1/workspaces/current' && request.method === 'GET') {
 		send(response, 200, {

@@ -101,30 +101,22 @@ final class Wallet {
 	}
 
 	/**
-	 * Enqueue wallet styles when the shortcode or block is present.
+	 * Register the shared certificate styles.
 	 *
 	 * @return void
 	 */
 	public function assets(): void {
+		$style_path = VERIFYCATE_DIR . 'assets/wallet.css';
+		$version    = VERIFYCATE_VERSION . ( file_exists( $style_path ) ? '.' . (string) filemtime( $style_path ) : '' );
+
 		wp_register_style(
 			'verifycate-wallet',
 			VERIFYCATE_URL . 'assets/wallet.css',
 			array(),
-			VERIFYCATE_VERSION
+			$version
 		);
 
-		if ( ! is_singular() ) {
-			return;
-		}
-
-		$post = get_post();
-		if ( ! $post instanceof \WP_Post ) {
-			return;
-		}
-
-		if ( has_shortcode( $post->post_content, 'verifycate_wallet' ) || has_block( 'verifycate/wallet', $post ) ) {
-			wp_enqueue_style( 'verifycate-wallet' );
-		}
+		wp_enqueue_style( 'verifycate-wallet' );
 	}
 
 	/**

@@ -3,17 +3,195 @@
 
 	var data = window.verifycateAdmin || {};
 
-	function toggleCustomFields() {
-		var source = document.getElementById('verifycate-source');
-		var custom = document.querySelector('.verifycate-custom-fields');
+	function currentLms() {
+		return document.getElementById('verifycate-lms');
+	}
 
-		if (!source || !custom) {
+	function currentTrigger() {
+		return document.getElementById('verifycate-trigger');
+	}
+
+	function currentObject() {
+		return document.getElementById('verifycate-object');
+	}
+
+	function toggleCustomFields() {
+		var lms = currentLms();
+		var custom = document.querySelector('.verifycate-custom-fields');
+		var triggers = document.querySelector('.verifycate-trigger-fields');
+
+		if (!lms || !custom) {
 			return;
 		}
 
-		custom.hidden = source.value.indexOf('custom:') !== 0;
+		var isCustom = lms.value === 'custom';
+		custom.hidden = !isCustom;
+
+		if (triggers) {
+			triggers.hidden = isCustom;
+		}
 	}
 
+	function objectLabel() {
+		var trigger = currentTrigger();
+
+		if (!trigger || trigger.value === 'quiz_passed') {
+			return 'Quiz';
+		}
+
+		if (trigger.value === 'lesson_completed') {
+			return 'Lesson';
+		}
+
+		return 'Course';
+	}
+
+	function objectPlaceholder() {
+		var trigger = currentTrigger();
+
+		if (!trigger || trigger.value === 'quiz_passed') {
+			return 'Select a quiz…';
+		}
+
+		if (trigger.value === 'lesson_completed') {
+			return 'Select a lesson…';
+		}
+
+		return 'Select a course…';
+	}
+
+	function updateObjectUi() {
+		var label = document.getElementById('verifycate-object-label');
+		var object = currentObject();
+
+		if (label) {
+			label.textContent = objectLabel();
+		}
+
+		if (object) {
+			var wrapper = object.closest('[data-combobox]');
+			var input = wrapper ? wrapper.querySelector('.verifycate-combobox__input') : null;
+			var placeholder = objectPlaceholder();
+
+			object.setAttribute('data-search-placeholder', placeholder);
+
+			if (input) {
+				input.placeholder = placeholder;
+			}
+		}
+	}
+
+	function refreshCombobox(select) {
+		var wrapper = select ? select.closest('[data-combobox]') : null;
+
+		if (wrapper && wrapper.verifycateRefresh) {
+			wrapper.verifycateRefresh();
+		}
+	}
+
+	function loadTriggerObjects(preserve) {
+		var lms = currentLms();
+		var trigger = currentTrigger();
+		var object = currentObject();
+
+		if (!lms || !trigger || !object) {
+			return;
+		}
+
+		if (lms.value === 'custom') {
+			return;
+		}
+
+		var desired = preserve ? (object.getAttribute('data-selected') || '') : '';
+		var placeholder = objectPlaceholder();
+		var url = data.ajaxUrl
+			+ '?action=verifycate_trigger_options&nonce=' + encodeURIComponent(data.nonce)
+			+ '&integration=' + encodeURIComponent(lms.value)
+			+ '&trigger=' + encodeURIComponent(trigger.value);
+
+		object.innerHTML = '';
+		var loading = document.createElement('option');
+		loading.value = '';
+		loading.textContent = 'Loading options…';
+		object.appendChild(loading);
+		refreshCombobox(object);
+
+		window.fetch(url, { credentials: 'same-origin' })
+			.then(function (response) {
+				return response.json();
+			})
+			.then(function (payload) {
+				if (!payload || !payload.success || !payload.data || !Array.isArray(payload.data.options)) {
+					throw new Error('Invalid trigger options response');
+				}
+
+				object.innerHTML = '';
+
+				var empty = document.createElement('option');
+				empty.value = '';
+				empty.textContent = placeholder;
+				object.appendChild(empty);
+
+				var groups = {};
+				payload.data.options.forEach(function (item) {
+					var option = document.createElement('option');
+					option.value = item.value || '';
+					option.textContent = item.label || '';
+
+					if (item.group) {
+						if (!groups[item.group]) {
+							groups[item.group] = document.createElement('optgroup');
+							groups[item.group].label = item.group;
+							object.appendChild(groups[item.group]);
+						}
+						groups[item.group].appendChild(option);
+					} else {
+						object.appendChild(option);
+					}
+				});
+
+				if (desired) {
+					object.value = desired;
+
+					if (object.value !== desired) {
+						var current = document.createElement('option');
+						current.value = desired;
+						current.textContent = 'Current selection';
+						object.appendChild(current);
+						object.value = desired;
+					}
+				}
+
+				refreshCombobox(object);
+			})
+			.catch(function () {
+				object.innerHTML = '';
+				var failed = document.createElement('option');
+				failed.value = '';
+				failed.textContent = 'Could not load options. Reload the page.';
+				object.appendChild(failed);
+				refreshCombobox(object);
+			});
+	}
+
+	function toggleTriggerScore() {
+		var trigger = currentTrigger();
+		var score = document.querySelector('.verifycate-trigger-score');
+
+		if (!trigger) {
+			return;
+		}
+
+		if (score) {
+			score.hidden = trigger.value !== 'quiz_passed';
+		}
+	}
+
+	function syncTriggerFields(preserve) {
+		updateObjectUi();
+		toggleTriggerScore();
+		loadTriggerObjects(preserve);
+	}
 	var attributeSamples = {
 		'{user_name}': 'Ada Lovelace',
 		'{user_email}': 'ada@example.com',
@@ -432,24 +610,35 @@
 				return;
 			}
 
-			var items = [];
 			var clean = function (value) {
 				return (value || '').replace(/\s+/g, ' ').trim();
 			};
-			Array.prototype.forEach.call(select.children, function (child) {
-				if (child.tagName === 'OPTGROUP') {
-					Array.prototype.forEach.call(child.children, function (option) {
-						if (option.value) {
-							items.push({ value: option.value, label: clean(option.textContent), group: clean(child.label) });
-						}
-					});
-				} else if (child.tagName === 'OPTION' && child.value) {
-					items.push({ value: child.value, label: clean(child.textContent), group: '' });
-				}
-			});
+			var collectItems = function () {
+				var collected = [];
+				Array.prototype.forEach.call(select.children, function (child) {
+					if (child.tagName === 'OPTGROUP') {
+						Array.prototype.forEach.call(child.children, function (option) {
+							if (option.value) {
+								collected.push({ value: option.value, label: clean(option.textContent), group: clean(child.label) });
+							}
+						});
+					} else if (child.tagName === 'OPTION' && child.value) {
+						collected.push({ value: child.value, label: clean(child.textContent), group: '' });
+					}
+				});
+				return collected;
+			};
+			var items = collectItems();
 
 			var filtered = items.slice();
 			var activeIndex = -1;
+
+			wrapper.verifycateRefresh = function () {
+				items = collectItems();
+				filtered = items.slice();
+				activeIndex = -1;
+				syncInput();
+			};
 
 			select.required = false;
 			wrapper.classList.add('is-enhanced');
@@ -661,11 +850,26 @@
 	document.addEventListener('DOMContentLoaded', function () {
 		enhanceComboboxes();
 
-		var source = document.getElementById('verifycate-source');
+		var lmsSelect = currentLms();
 
-		if (source) {
-			source.addEventListener('change', toggleCustomFields);
+		if (lmsSelect) {
+			lmsSelect.addEventListener('change', function () {
+				toggleCustomFields();
+				syncTriggerFields(false);
+			});
+		}
+
+		var triggerSelect = currentTrigger();
+
+		if (triggerSelect) {
+			triggerSelect.addEventListener('change', function () {
+				syncTriggerFields(false);
+			});
+		}
+
+		if (lmsSelect) {
 			toggleCustomFields();
+			syncTriggerFields(true);
 		}
 
 		loadAttributeRows();
@@ -678,6 +882,40 @@
 			});
 		});
 
+		var selectAll = document.getElementById('verifycate-select-all');
+		var rowChecks = document.querySelectorAll('#verifycate-bulk-form input[name="mapping_ids[]"]');
+
+		if (selectAll && rowChecks.length) {
+			selectAll.addEventListener('change', function () {
+				rowChecks.forEach(function (checkbox) {
+					checkbox.checked = selectAll.checked;
+				});
+				selectAll.indeterminate = false;
+			});
+
+			rowChecks.forEach(function (checkbox) {
+				checkbox.addEventListener('change', function () {
+					var checked = Array.prototype.filter.call(rowChecks, function (item) {
+						return item.checked;
+					}).length;
+
+					selectAll.checked = checked === rowChecks.length;
+					selectAll.indeterminate = checked > 0 && checked < rowChecks.length;
+				});
+			});
+		}
+
+		var bulkForm = document.getElementById('verifycate-bulk-form');
+		var bulkAction = document.getElementById('verifycate-bulk-action');
+
+		if (bulkForm && bulkAction) {
+			bulkForm.addEventListener('submit', function (event) {
+				if (bulkAction.value === 'delete' && !window.confirm(data.confirmBulkDelete || 'Delete the selected mappings?')) {
+					event.preventDefault();
+				}
+			});
+		}
+
 		document.querySelectorAll('.verifycate-copy').forEach(function (button) {
 			button.addEventListener('click', function () {
 				var value = button.getAttribute('data-copy') || '';
@@ -687,6 +925,21 @@
 				}
 
 				navigator.clipboard.writeText(value).then(function () {
+					if (button.classList.contains('verifycate-copy-icon')) {
+						var label = button.getAttribute('data-copy-label') || 'Copy shortcode';
+						button.classList.add('is-copied');
+						button.setAttribute('aria-label', data.copied || 'Copied');
+						button.setAttribute('title', data.copied || 'Copied');
+
+						window.setTimeout(function () {
+							button.classList.remove('is-copied');
+							button.setAttribute('aria-label', label);
+							button.setAttribute('title', label);
+						}, 2000);
+
+						return;
+					}
+
 					var original = button.textContent;
 					button.textContent = data.copied || 'Copied';
 					window.setTimeout(function () {

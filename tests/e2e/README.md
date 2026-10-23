@@ -54,6 +54,13 @@ npx wp-env run cli wp eval-file wp-content/plugins/wp-plugin/tests/e2e/setup.php
 npx wp-env run cli wp verifycate mappings
 ```
 
+To silence LearnPress's loopback warning under wp-env, install the local
+loopback shim as an mu-plugin in the WordPress container:
+
+```bash
+npx wp-env run cli sh -c 'mkdir -p /var/www/html/wp-content/mu-plugins && cp /var/www/html/wp-content/plugins/wp-plugin/tests/e2e/local-loopback.php /var/www/html/wp-content/mu-plugins/'
+```
+
 `configure.php` stores only the API key. `wp verifycate status` resolves the
 workspace through `GET /api/v1/workspaces/current` and prints the detected slug,
 scopes and plan state.

@@ -75,6 +75,7 @@
 			"@analyse",
 			"@test"
 		],
+		"pot": "bash bin/make-pot.sh",
 		"build": "bash bin/build-plugin.sh"
 	}
 }

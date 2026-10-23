@@ -101,4 +101,27 @@ final class MappingTest extends TestCase {
 		$this->assertTrue( $any->matches( 'learndash', 99, 'course_completed' ) );
 		$this->assertFalse( $any->matches( 'learnpress', 99, 'course_completed' ) );
 	}
+
+	/**
+	 * Trigger fields round-trip and restrict matching.
+	 */
+	public function test_trigger_fields(): void {
+		$mapping = Mapping::fromArray(
+			array(
+				'integration'    => 'learndash',
+				'event'          => Mapping::EVENT_QUIZ_PASSED,
+				'course_id'      => 42,
+				'trigger_id'     => 99,
+				'score_min'      => 80,
+				'certificate_id' => 'cert-1',
+			)
+		);
+
+		$this->assertSame( 99, $mapping->getTriggerId() );
+		$this->assertSame( 80.0, $mapping->getScoreMin() );
+		$this->assertTrue( $mapping->matches( 'learndash', 42, Mapping::EVENT_QUIZ_PASSED, 99 ) );
+		$this->assertFalse( $mapping->matches( 'learndash', 42, Mapping::EVENT_QUIZ_PASSED, 100 ) );
+		$this->assertSame( 99, $mapping->toArray()['trigger_id'] );
+		$this->assertSame( 80.0, $mapping->toArray()['score_min'] );
+	}
 }

@@ -77,6 +77,14 @@ if ( ! Support\Requirements::met() ) {
 add_action(
 	'plugins_loaded',
 	static function (): void {
+		load_plugin_textdomain( 'verifycate', false, dirname( VERIFYCATE_BASENAME ) . '/languages' );
+	},
+	1
+);
+
+add_action(
+	'plugins_loaded',
+	static function (): void {
 		Plugin::instance()->boot();
 	}
 );

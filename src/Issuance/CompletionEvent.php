@@ -73,6 +73,13 @@ final class CompletionEvent {
 	private array $context;
 
 	/**
+	 * Trigger object id: quiz, lesson or other source object.
+	 *
+	 * @var int
+	 */
+	private int $triggerId;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param string               $integration Integration id.
@@ -83,6 +90,7 @@ final class CompletionEvent {
 	 * @param float|null           $score Optional score.
 	 * @param \DateTimeImmutable   $completedAt Completion time.
 	 * @param array<string, mixed> $context Extra data.
+	 * @param int                  $triggerId Trigger object id.
 	 */
 	public function __construct(
 		string $integration,
@@ -92,7 +100,8 @@ final class CompletionEvent {
 		string $courseTitle = '',
 		?float $score = null,
 		?\DateTimeImmutable $completedAt = null,
-		array $context = array()
+		array $context = array(),
+		int $triggerId = 0
 	) {
 		$this->integration = $integration;
 		$this->event       = '' === $event ? 'course_completed' : $event;
@@ -102,6 +111,7 @@ final class CompletionEvent {
 		$this->score       = $score;
 		$this->completedAt = $completedAt ?? new \DateTimeImmutable( 'now', new \DateTimeZone( 'UTC' ) );
 		$this->context     = $context;
+		$this->triggerId   = max( 0, $triggerId );
 	}
 
 	/**
@@ -114,6 +124,7 @@ final class CompletionEvent {
 	 * @param string               $courseTitle Course title.
 	 * @param float|null           $score Optional score.
 	 * @param array<string, mixed> $context Extra data.
+	 * @param int                  $triggerId Trigger object id.
 	 * @return self
 	 */
 	public static function create(
@@ -123,9 +134,10 @@ final class CompletionEvent {
 		int $courseId,
 		string $courseTitle = '',
 		?float $score = null,
-		array $context = array()
+		array $context = array(),
+		int $triggerId = 0
 	): self {
-		return new self( $integration, $event, $userId, $courseId, $courseTitle, $score, null, $context );
+		return new self( $integration, $event, $userId, $courseId, $courseTitle, $score, null, $context, $triggerId );
 	}
 
 	/**
@@ -149,7 +161,8 @@ final class CompletionEvent {
 			isset( $data['course_title'] ) && is_scalar( $data['course_title'] ) ? (string) $data['course_title'] : '',
 			isset( $data['score'] ) && is_numeric( $data['score'] ) ? (float) $data['score'] : null,
 			$completed,
-			$context
+			$context,
+			isset( $data['trigger_id'] ) && is_numeric( $data['trigger_id'] ) ? (int) $data['trigger_id'] : 0
 		);
 	}
 
@@ -162,6 +175,7 @@ final class CompletionEvent {
 		return array(
 			'integration'  => $this->integration,
 			'event'        => $this->event,
+			'trigger_id'   => $this->triggerId,
 			'user_id'      => $this->userId,
 			'course_id'    => $this->courseId,
 			'course_title' => $this->courseTitle,
@@ -196,6 +210,15 @@ final class CompletionEvent {
 	 */
 	public function getEvent(): string {
 		return $this->event;
+	}
+
+	/**
+	 * Trigger object id.
+	 *
+	 * @return int
+	 */
+	public function getTriggerId(): int {
+		return $this->triggerId;
 	}
 
 	/**

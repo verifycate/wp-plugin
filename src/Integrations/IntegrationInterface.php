@@ -59,4 +59,20 @@ interface IntegrationInterface {
 	 * @return array<int, string> Course id => title.
 	 */
 	public function getCourses( int $limit = 300 ): array;
+
+	/**
+	 * Quizzes available for quiz triggers.
+	 *
+	 * @param int $limit Maximum quizzes.
+	 * @return array<int, array{id: int, title: string, course_id: int, course_title: string}>
+	 */
+	public function getQuizzes( int $limit = 500 ): array;
+
+	/**
+	 * Lessons available for lesson triggers.
+	 *
+	 * @param int $limit Maximum lessons.
+	 * @return array<int, array{id: int, title: string, course_id: int, course_title: string}>
+	 */
+	public function getLessons( int $limit = 500 ): array;
 }

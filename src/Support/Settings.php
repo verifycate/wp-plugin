@@ -26,7 +26,7 @@ final class Settings {
 	/**
 	 * Default recipient portal URL.
 	 */
-	public const DEFAULT_PORTAL_URL = 'https://verifycate.com';
+	public const DEFAULT_PORTAL_URL = Urls::SITE_URL;
 
 	/**
 	 * Stored values.

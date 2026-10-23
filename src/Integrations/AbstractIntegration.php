@@ -75,6 +75,26 @@ abstract class AbstractIntegration implements IntegrationInterface {
 	}
 
 	/**
+	 * Quizzes available for quiz triggers.
+	 *
+	 * @param int $limit Maximum quizzes.
+	 * @return array<int, array{id: int, title: string, course_id: int, course_title: string}>
+	 */
+	public function getQuizzes( int $limit = 500 ): array {
+		return array();
+	}
+
+	/**
+	 * Lessons available for lesson triggers.
+	 *
+	 * @param int $limit Maximum lessons.
+	 * @return array<int, array{id: int, title: string, course_id: int, course_title: string}>
+	 */
+	public function getLessons( int $limit = 500 ): array {
+		return array();
+	}
+
+	/**
 	 * Course title for an id, falling back to a neutral label.
 	 *
 	 * @param int $course_id Course id.

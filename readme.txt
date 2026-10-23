@@ -27,8 +27,10 @@ Supported course plugins:
 
 Highlights:
 
-* Automatic issuance on course completion, with an "any course" option so one
-  certificate can cover a whole catalogue.
+* Automatic issuance on course completion, quiz passing or lesson completion,
+  with an "any course" option so one certificate can cover a whole catalogue.
+* Optional minimum quiz scores, so a certificate is only issued after the learner
+  reaches the required result.
 * Map learner and course data to certificate attributes with tokens such as
   {user_name}, {course_title}, {completion_date}, {user_meta:key} and
   {course_meta:key}.
@@ -37,7 +39,11 @@ Highlights:
 * A durable issuance queue with exponential backoff, visible failures and a
   retry action, so a temporary API outage does not lose a completion.
 * A certificate wallet shortcode and block so learners can open what they have
-  earned.
+  earned, plus single-certificate and public-verification shortcodes.
+* Search, sorting, pagination and bulk actions for course mappings.
+* A dedicated Configure screen for the workspace API key and environment
+  settings.
+* Translation-ready, with a bundled `languages/verifycate.pot` template.
 * A connection test that explains bad keys, missing plans and permission
   problems.
 * WP-CLI commands for status, mappings, direct issuance, queue processing,
@@ -74,7 +80,8 @@ A Verifycate account is required for the plugin to issue certificates.
    Verifycate. The plugin finds the workspace, checks the key scopes and plan,
    and tests the connection.
 4. Create at least one certificate in the Verifycate dashboard, then map a
-   course to it under Verifycate > Mappings.
+   course under Verifycate > Mappings and choose the course, quiz-passed or
+   lesson-completed trigger.
 5. Optional: add `[verifycate_wallet]` to a learner-facing page, or insert the
    Verifycate Wallet block.
 
@@ -95,6 +102,15 @@ connection between your WordPress site and your Verifycate workspace.
 = Does the plugin design my certificates? =
 
 No. You design certificates in the Verifycate dashboard and map to them here.
+
+= Can I issue a certificate for a quiz or a lesson? =
+
+Yes. Choose the LMS, then select the course-completed, quiz-passed or
+lesson-completed trigger and pick a specific course, quiz or lesson — or use one
+of the “Any” options to cover a whole catalogue or a group of items. Quiz
+triggers can optionally require a minimum score. For an event your LMS does not
+expose, use the custom hook and trigger `verifycate_course_completed` from your
+own code.
 
 = Does it work without an API key? =
 
@@ -118,13 +134,30 @@ enabled data removal on the Get started screen.
 
 Yes. Add the `[verifycate_wallet]` shortcode or the Verifycate Wallet block to a
 page. Logged-in learners see the certificates issued to their account email.
+You can also embed a single certificate with `[verifycate_certificate
+public_id="..."]` or add a public verification form with `[verifycate_verify]`.
+
+= Can I translate the plugin? =
+
+Yes. The plugin is translation-ready and includes a `languages/verifycate.pot`
+template. Use Poedit, Loco Translate, or WP-CLI to create a translation for your
+locale, then place the `.po` and `.mo` files in `wp-content/languages/plugins/`
+or the plugin's `languages/` directory.
 
 == Screenshots ==
 
-1. Connecting a WordPress site to Verifycate.
-2. Mapping a course to a certificate.
-3. The learner certificate wallet.
-4. Queue and issuance logs.
+1. Connect your Verifycate workspace and see which LMS plugins are active.
+2. Store the workspace API key without exposing it in the admin.
+3. Map any course, quiz or lesson to a Verifycate certificate.
+4. Add a minimum score for quiz-based completions.
+5. Pick certificates directly from the Verifycate catalogue.
+6. Search quiz and lesson options grouped by course.
+7. Use the same mapping flow for Sensei LMS.
+8. Map custom completion hooks when an LMS is not covered.
+9. Monitor queued and issued certificates from the logs screen.
+10. Give learners a wallet with every certificate they have earned.
+11. Let anyone verify a certificate with its public ID.
+12. Embed a certificate card anywhere with a shortcode.
 
 == Changelog ==
 
@@ -134,9 +167,15 @@ page. Logged-in learners see the certificates issued to their account email.
   test with actionable errors.
 * Course mappings for LearnDash, Tutor LMS, LearnPress, LifterLMS, Sensei and a
   custom hook, including any-course mappings and attribute templates.
+* Course-completed, quiz-passed and lesson-completed triggers, with optional
+  minimum quiz scores.
 * Durable issuance queue with retries, exponential backoff and a retry action.
 * Duplicate suppression and recertification (reissue) policies.
-* Certificate wallet shortcode and server-rendered block.
+* Certificate wallet shortcode and server-rendered block, plus
+  single-certificate and public-verification shortcodes.
+* Search, sorting, pagination and bulk actions for course mappings.
+* Dedicated Configure screen for the workspace API key and environment settings.
+* Translation-ready with a bundled POT file.
 * Admin mappings, queue and activity log screens.
 * WP-CLI commands for status, mappings, issuance, queue, retries and logs.
 

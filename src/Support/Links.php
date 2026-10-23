@@ -19,19 +19,13 @@ final class Links {
 	/**
 	 * Verifycate app base URL.
 	 *
-	 * The API host is used to pick the development app, and a filter lets hosts
-	 * point at a self-hosted or staging app.
+	 * A filter lets hosts point at a self-hosted or staging app.
 	 *
 	 * @param Settings $settings Settings.
 	 * @return string
 	 */
 	public static function appUrl( Settings $settings ): string {
-		$api = strtolower( $settings->getBaseUrl() );
-		$app = 'https://app.verifycate.com';
-
-		if ( false !== strpos( $api, '.dev' ) || false !== strpos( $api, 'localhost' ) || false !== strpos( $api, 'host.docker.internal' ) ) {
-			$app = 'https://app.verifycate.dev';
-		}
+		$app = Urls::APP_URL;
 
 		/**
 		 * Filter the Verifycate app base URL used by setup links.
@@ -90,5 +84,23 @@ final class Links {
 	 */
 	public static function walletShortcode(): string {
 		return '[verifycate_wallet]';
+	}
+
+	/**
+	 * Single certificate shortcode.
+	 *
+	 * @return string
+	 */
+	public static function certificateShortcode(): string {
+		return '[verifycate_certificate public_id="PUBLIC_ID"]';
+	}
+
+	/**
+	 * Public verification shortcode.
+	 *
+	 * @return string
+	 */
+	public static function verifyShortcode(): string {
+		return '[verifycate_verify]';
 	}
 }

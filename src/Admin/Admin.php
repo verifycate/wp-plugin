@@ -13,6 +13,7 @@ use Verifycate\Api\CertificateCatalog;
 use Verifycate\Api\ClientFactory;
 use Verifycate\Integrations\Registry;
 use Verifycate\Issuance\AttributeMapper;
+use Verifycate\Issuance\Mapping;
 use Verifycate\Issuance\MappingRepository;
 use Verifycate\Issuance\Queue;
 use Verifycate\Support\Logger;
@@ -133,11 +134,13 @@ final class Admin {
 		add_action( 'admin_post_verifycate_disconnect', array( $this, 'disconnect' ) );
 		add_action( 'admin_post_verifycate_save_mapping', array( $this, 'saveMapping' ) );
 		add_action( 'admin_post_verifycate_delete_mapping', array( $this, 'deleteMapping' ) );
+		add_action( 'admin_post_verifycate_bulk_mappings', array( $this, 'bulkMappings' ) );
 		add_action( 'admin_post_verifycate_retry_job', array( $this, 'retryJob' ) );
 		add_action( 'admin_post_verifycate_retry_failed', array( $this, 'retryFailed' ) );
 		add_action( 'admin_post_verifycate_clear_logs', array( $this, 'clearLogs' ) );
 
 		add_action( 'wp_ajax_verifycate_certificate', array( $this, 'ajaxCertificate' ) );
+		add_action( 'wp_ajax_verifycate_trigger_options', array( $this, 'ajaxTriggerOptions' ) );
 	}
 
 	/**
@@ -167,7 +170,16 @@ final class Admin {
 
 		add_submenu_page(
 			'verifycate',
-			__( 'Mappings', 'verifycate' ),
+			__( 'Configure Verifycate', 'verifycate' ),
+			__( 'Configure', 'verifycate' ),
+			self::CAPABILITY,
+			'verifycate-configure',
+			array( $this, 'renderConfigure' )
+		);
+
+		add_submenu_page(
+			'verifycate',
+			__( 'Certificate Mappings', 'verifycate' ),
 			__( 'Mappings', 'verifycate' ),
 			self::CAPABILITY,
 			'verifycate-mappings',
@@ -195,18 +207,23 @@ final class Admin {
 			return;
 		}
 
+		$css_path    = VERIFYCATE_DIR . 'assets/admin.css';
+		$js_path     = VERIFYCATE_DIR . 'assets/admin.js';
+		$css_version = VERIFYCATE_VERSION . ( file_exists( $css_path ) ? '.' . (string) filemtime( $css_path ) : '' );
+		$js_version  = VERIFYCATE_VERSION . ( file_exists( $js_path ) ? '.' . (string) filemtime( $js_path ) : '' );
+
 		wp_enqueue_style(
 			'verifycate-admin',
 			VERIFYCATE_URL . 'assets/admin.css',
 			array(),
-			VERIFYCATE_VERSION
+			$css_version
 		);
 
 		wp_enqueue_script(
 			'verifycate-admin',
 			VERIFYCATE_URL . 'assets/admin.js',
 			array(),
-			VERIFYCATE_VERSION,
+			$js_version,
 			true
 		);
 
@@ -239,6 +256,7 @@ final class Admin {
 				'clear'                 => __( 'Clear', 'verifycate' ),
 				'tokens'                => $tokens,
 				'confirmDelete'         => __( 'Delete this mapping? Existing issued certificates are not affected.', 'verifycate' ),
+				'confirmBulkDelete'     => __( 'Delete the selected mappings? Existing issued certificates are not affected.', 'verifycate' ),
 				'copied'                => __( 'Copied', 'verifycate' ),
 			)
 		);
@@ -252,6 +270,16 @@ final class Admin {
 	public function renderSettings(): void {
 		$this->authorize();
 		$this->settingsPage()->render();
+	}
+
+	/**
+	 * Render the configuration page.
+	 *
+	 * @return void
+	 */
+	public function renderConfigure(): void {
+		$this->authorize();
+		$this->settingsPage()->renderConfigure();
 	}
 
 	/**
@@ -343,48 +371,74 @@ final class Admin {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verifyRequest() checks the nonce.
 		$post = wp_unslash( $_POST );
 
-		$source = isset( $post['source'] ) && is_string( $post['source'] ) ? $post['source'] : '';
-		$parts  = explode( ':', $source, 2 );
+		$mapping_id  = isset( $post['mapping_id'] ) ? (int) $post['mapping_id'] : 0;
+		$integration = isset( $post['lms'] ) ? sanitize_key( (string) $post['lms'] ) : '';
+		$object      = isset( $post['object'] ) ? sanitize_text_field( (string) $post['object'] ) : '';
+		$parts       = explode( ':', $object, 2 );
 
-		if ( count( $parts ) !== 2 ) {
-			Notices::add( 'error', __( 'Choose a course or the custom hook before saving.', 'verifycate' ) );
+		if ( '' === $integration || ( 'custom' !== $integration && count( $parts ) !== 2 ) ) {
+			Notices::add( 'error', __( 'Choose an LMS, trigger and object before saving.', 'verifycate' ) );
 			$this->redirect( 'verifycate-mappings' );
 		}
 
-		$integration = sanitize_key( $parts[0] );
-		$course_id   = max( 0, (int) $parts[1] );
+		$course_id  = 'custom' !== $integration ? max( 0, (int) $parts[0] ) : 0;
+		$trigger_id = 'custom' !== $integration ? max( 0, (int) $parts[1] ) : 0;
+		$score_min  = 0.0;
 
 		if ( 'custom' === $integration ) {
 			$event = isset( $post['custom_event'] ) ? sanitize_key( (string) $post['custom_event'] ) : '';
 			if ( '' === $event ) {
-				$event = 'course_completed';
+				$event = Mapping::EVENT_COURSE_COMPLETED;
 			}
 
 			$custom_course = isset( $post['custom_course_id'] ) ? max( 0, (int) $post['custom_course_id'] ) : 0;
 			$course_id     = $custom_course;
+			$trigger_id    = 0;
 		} else {
-			$event = '';
+			$event = isset( $post['trigger'] ) ? sanitize_key( (string) $post['trigger'] ) : Mapping::EVENT_COURSE_COMPLETED;
+
+			if ( ! in_array( $event, array( Mapping::EVENT_COURSE_COMPLETED, Mapping::EVENT_QUIZ_PASSED, Mapping::EVENT_LESSON_COMPLETED ), true ) ) {
+				$event = Mapping::EVENT_COURSE_COMPLETED;
+			}
+
+			if ( Mapping::EVENT_QUIZ_PASSED === $event ) {
+				$score_min = isset( $post['score_min'] ) ? max( 0.0, min( 100.0, (float) $post['score_min'] ) ) : 0.0;
+			} else {
+				$score_min = 0.0;
+			}
+		}
+
+		if ( Mapping::EVENT_COURSE_COMPLETED === $event ) {
+			$trigger_id = 0;
 		}
 
 		$certificate_id = isset( $post['certificate_id'] ) ? sanitize_text_field( (string) $post['certificate_id'] ) : '';
 		$certificate    = $this->catalog->find( $certificate_id );
 
 		$certificate_name = $certificate['name'] ?? '';
+		if ( '' === $certificate_name && $mapping_id > 0 ) {
+			$existing = $this->mappings->find( $mapping_id );
+			if ( null !== $existing && $existing->getCertificateId() === $certificate_id ) {
+				$certificate_name = $existing->getCertificateName();
+			}
+		}
 		if ( '' === $certificate_name && isset( $post['certificate_name'] ) ) {
 			$certificate_name = sanitize_text_field( (string) $post['certificate_name'] );
 		}
 
 		$saved = $this->mappings->save(
 			array(
-				'id'               => isset( $post['mapping_id'] ) ? (int) $post['mapping_id'] : 0,
+				'id'               => $mapping_id,
 				'integration'      => $integration,
 				'event'            => $event,
+				'trigger_id'       => $trigger_id,
 				'course_id'        => $course_id,
 				'certificate_id'   => $certificate_id,
 				'certificate_name' => $certificate_name,
 				'attributes'       => $this->parseAttributes( isset( $post['attributes'] ) ? (string) $post['attributes'] : '' ),
 				'auto_issue'       => ! empty( $post['auto_issue'] ),
 				'duplicate_policy' => isset( $post['duplicate_policy'] ) ? sanitize_key( (string) $post['duplicate_policy'] ) : '',
+				'score_min'        => $score_min,
 				'enabled'          => ! empty( $post['enabled'] ),
 			)
 		);
@@ -417,6 +471,72 @@ final class Admin {
 		}
 
 		$this->redirect( 'verifycate-mappings' );
+	}
+
+	/**
+	 * Apply a bulk action to selected mappings.
+	 *
+	 * @return void
+	 */
+	public function bulkMappings(): void {
+		$this->authorizePost( 'verifycate_bulk_mappings' );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verifyRequest() checks the nonce.
+		$action = isset( $_POST['bulk_action'] ) ? sanitize_key( wp_unslash( (string) $_POST['bulk_action'] ) ) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- IDs are sanitized below.
+		$raw_ids = isset( $_POST['mapping_ids'] ) && is_array( $_POST['mapping_ids'] ) ? wp_unslash( $_POST['mapping_ids'] ) : array();
+
+		$ids = array();
+		foreach ( $raw_ids as $raw_id ) {
+			$id = absint( $raw_id );
+			if ( $id > 0 ) {
+				$ids[] = $id;
+			}
+		}
+		$ids = array_values( array_unique( $ids ) );
+
+		if ( 'delete' !== $action || $ids === array() ) {
+			Notices::add( 'error', __( 'Choose a bulk action and at least one mapping.', 'verifycate' ) );
+			$this->redirectToReferer();
+		}
+
+		$deleted = 0;
+		foreach ( $ids as $id ) {
+			if ( $this->mappings->delete( $id ) ) {
+				++$deleted;
+			}
+		}
+
+		if ( $deleted > 0 ) {
+			Notices::add(
+				'success',
+				sprintf(
+					/* translators: %s: number of mappings. */
+					_n( '%s mapping deleted.', '%s mappings deleted.', $deleted, 'verifycate' ),
+					number_format_i18n( $deleted )
+				)
+			);
+		} else {
+			Notices::add( 'error', __( 'The selected mappings could not be deleted.', 'verifycate' ) );
+		}
+
+		$this->redirectToReferer();
+	}
+
+	/**
+	 * Redirect back to the current list screen.
+	 *
+	 * @return void
+	 */
+	private function redirectToReferer(): void {
+		$redirect = wp_get_referer();
+
+		if ( ! is_string( $redirect ) || '' === $redirect ) {
+			$redirect = add_query_arg( 'page', 'verifycate-mappings', admin_url( 'admin.php' ) );
+		}
+
+		wp_safe_redirect( $redirect );
+		exit;
 	}
 
 	/**
@@ -494,6 +614,95 @@ final class Admin {
 		}
 
 		wp_send_json_success( array( 'attributes' => $this->catalog->attributes( $id ) ) );
+	}
+
+	/**
+	 * Return course, quiz or lesson options for the mapping trigger picker.
+	 *
+	 * @return void
+	 */
+	public function ajaxTriggerOptions(): void {
+		check_ajax_referer( 'verifycate_admin', 'nonce' );
+
+		if ( ! current_user_can( self::CAPABILITY ) ) {
+			wp_send_json_error( array( 'message' => __( 'You are not allowed to do this.', 'verifycate' ) ), 403 );
+		}
+
+		$integration_id = isset( $_GET['integration'] ) ? sanitize_key( wp_unslash( (string) $_GET['integration'] ) ) : '';
+		$trigger        = isset( $_GET['trigger'] ) ? sanitize_key( wp_unslash( (string) $_GET['trigger'] ) ) : '';
+		$integration    = $this->integrations->get( $integration_id );
+
+		if ( null === $integration || 'custom' === $integration_id ) {
+			wp_send_json_success( array( 'options' => array() ) );
+		}
+
+		$options = array();
+
+		if ( Mapping::EVENT_COURSE_COMPLETED === $trigger ) {
+			$options[] = array(
+				'value' => '0:0',
+				'label' => sprintf(
+					/* translators: %s: LMS name. */
+					__( 'Any %s course', 'verifycate' ),
+					$integration->getLabel()
+				),
+				'group' => '',
+			);
+
+			foreach ( $integration->getCourses() as $course_id => $course_title ) {
+				$options[] = array(
+					'value' => (int) $course_id . ':0',
+					'label' => (string) $course_title,
+					'group' => '',
+				);
+			}
+		} elseif ( Mapping::EVENT_QUIZ_PASSED === $trigger || Mapping::EVENT_LESSON_COMPLETED === $trigger ) {
+			$is_quiz = Mapping::EVENT_QUIZ_PASSED === $trigger;
+			$items   = $is_quiz ? $integration->getQuizzes() : $integration->getLessons();
+
+			$options[] = array(
+				'value' => '0:0',
+				'label' => $is_quiz ? __( 'Any quiz in any course', 'verifycate' ) : __( 'Any lesson in any course', 'verifycate' ),
+				'group' => '',
+			);
+
+			$grouped = array();
+			foreach ( $items as $item ) {
+				$course_id = (int) $item['course_id'];
+				if ( ! isset( $grouped[ $course_id ] ) ) {
+					$grouped[ $course_id ] = array(
+						'title' => (string) $item['course_title'],
+						'items' => array(),
+					);
+				}
+				$grouped[ $course_id ]['items'][] = $item;
+			}
+
+			uasort(
+				$grouped,
+				static function ( array $left, array $right ): int {
+					return strcasecmp( $left['title'], $right['title'] );
+				}
+			);
+
+			foreach ( $grouped as $course_id => $group ) {
+				$options[] = array(
+					'value' => (int) $course_id . ':0',
+					'label' => $is_quiz ? __( 'Any quiz in this course', 'verifycate' ) : __( 'Any lesson in this course', 'verifycate' ),
+					'group' => (string) $group['title'],
+				);
+
+				foreach ( $group['items'] as $item ) {
+					$options[] = array(
+						'value' => (int) $item['course_id'] . ':' . (int) $item['id'],
+						'label' => (string) $item['title'],
+						'group' => (string) $item['course_title'],
+					);
+				}
+			}
+		}
+
+		wp_send_json_success( array( 'options' => $options ) );
 	}
 
 	/**

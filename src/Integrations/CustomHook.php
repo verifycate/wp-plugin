@@ -99,6 +99,16 @@ final class CustomHook extends AbstractIntegration {
 					? (float) $context['score']
 					: null;
 
+				$trigger_id = isset( $context['trigger_id'] ) && is_numeric( $context['trigger_id'] )
+					? (int) $context['trigger_id']
+					: 0;
+
+				if ( $trigger_id <= 0 && isset( $context['quiz_id'] ) && is_numeric( $context['quiz_id'] ) ) {
+					$trigger_id = (int) $context['quiz_id'];
+				} elseif ( $trigger_id <= 0 && isset( $context['lesson_id'] ) && is_numeric( $context['lesson_id'] ) ) {
+					$trigger_id = (int) $context['lesson_id'];
+				}
+
 				$listener(
 					CompletionEvent::create(
 						'custom',
@@ -107,7 +117,8 @@ final class CustomHook extends AbstractIntegration {
 						$course_id,
 						$title,
 						$score,
-						$context
+						$context,
+						$trigger_id
 					)
 				);
 			},

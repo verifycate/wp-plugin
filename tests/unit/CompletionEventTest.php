@@ -29,7 +29,8 @@ final class CompletionEventTest extends TestCase {
 			'Leadership',
 			88.0,
 			new \DateTimeImmutable( '2026-05-01T10:00:00Z' ),
-			array( 'cohort' => 'Spring' )
+			array( 'cohort' => 'Spring' ),
+			99
 		);
 
 		$restored = CompletionEvent::fromArray( $event->toArray() );
@@ -38,6 +39,7 @@ final class CompletionEventTest extends TestCase {
 		$this->assertSame( 'course_completed', $restored->getEvent() );
 		$this->assertSame( 7, $restored->getUserId() );
 		$this->assertSame( 42, $restored->getCourseId() );
+		$this->assertSame( 99, $restored->getTriggerId() );
 		$this->assertSame( 'Leadership', $restored->getCourseTitle() );
 		$this->assertSame( 88.0, $restored->getScore() );
 		$this->assertSame( '2026-05-01T10:00:00+00:00', $restored->getCompletedAt()->format( 'c' ) );

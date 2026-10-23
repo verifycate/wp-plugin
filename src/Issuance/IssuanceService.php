@@ -62,9 +62,26 @@ final class IssuanceService {
 			return;
 		}
 
-		$mappings = $this->mappings->matching( $event->getIntegration(), $event->getCourseId(), $event->getEvent() );
+		$mappings = $this->mappings->matching( $event->getIntegration(), $event->getCourseId(), $event->getEvent(), $event->getTriggerId() );
 
 		foreach ( $mappings as $mapping ) {
+			if ( $mapping->getScoreMin() > 0 ) {
+				$score = $event->getScore();
+				if ( null === $score || $score < $mapping->getScoreMin() ) {
+					Logger::info(
+						'Completion skipped because the quiz score is below the mapping threshold.',
+						array(
+							'mapping'   => $mapping->getId(),
+							'user'      => $event->getUserId(),
+							'course'    => $event->getCourseId(),
+							'score'     => $score,
+							'score_min' => $mapping->getScoreMin(),
+						)
+					);
+					continue;
+				}
+			}
+
 			/**
 			 * Filter whether a mapping should issue for this completion.
 			 *

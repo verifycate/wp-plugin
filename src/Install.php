@@ -19,7 +19,7 @@ final class Install {
 	/**
 	 * Schema version. Bump whenever a table changes.
 	 */
-	public const DB_VERSION = '1.0.0';
+	public const DB_VERSION = '1.1.0';
 
 	/**
 	 * Cron hook used by the issuance queue.
@@ -60,6 +60,7 @@ final class Install {
 
 		if ( self::DB_VERSION !== $installed || ! self::tablesExist() ) {
 			self::createTables();
+			self::migrateMappingTriggers();
 			update_option( 'verifycate_db_version', self::DB_VERSION, false );
 			self::schedule();
 		}
@@ -85,17 +86,19 @@ final class Install {
 				id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 				integration varchar(40) NOT NULL,
 				event varchar(100) NOT NULL DEFAULT '',
+				trigger_id bigint(20) unsigned NOT NULL DEFAULT 0,
 				course_id bigint(20) unsigned NOT NULL DEFAULT 0,
 				certificate_id char(36) NOT NULL,
 				certificate_name varchar(255) NOT NULL DEFAULT '',
 				attributes longtext NULL,
 				auto_issue tinyint(1) NOT NULL DEFAULT 1,
 				duplicate_policy varchar(20) NOT NULL DEFAULT 'skip',
+				score_min decimal(6,2) NOT NULL DEFAULT 0.00,
 				enabled tinyint(1) NOT NULL DEFAULT 1,
 				created_at datetime NOT NULL,
 				updated_at datetime NOT NULL,
 				PRIMARY KEY  (id),
-				UNIQUE KEY mapping (integration,event,course_id,certificate_id),
+				UNIQUE KEY mapping (integration,event,trigger_id,course_id,certificate_id),
 				KEY certificate (certificate_id),
 				KEY enabled (enabled)
 			) {$charset_collate};",
@@ -133,6 +136,48 @@ final class Install {
 		foreach ( $sql as $statement ) {
 			dbDelta( $statement );
 		}
+	}
+
+	/**
+	 * Migrate existing course mappings onto the trigger-aware schema.
+	 *
+	 * Empty event values historically meant "any event". Native mappings must
+	 * become explicitly course-completed before quiz and lesson events start
+	 * firing, otherwise old mappings would issue on the new triggers.
+	 *
+	 * @return void
+	 */
+	private static function migrateMappingTriggers(): void {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'verifycate_mappings';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->query( "UPDATE {$table} SET event = 'course_completed' WHERE event = ''" );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$index = $wpdb->get_results( "SHOW INDEX FROM {$table} WHERE Key_name = 'mapping'", ARRAY_A );
+		$keys  = array();
+
+		foreach ( is_array( $index ) ? $index : array() as $row ) {
+			if ( isset( $row['Column_name'] ) ) {
+				$keys[] = (string) $row['Column_name'];
+			}
+		}
+
+		$expected = array( 'integration', 'event', 'trigger_id', 'course_id', 'certificate_id' );
+
+		if ( $keys === $expected ) {
+			return;
+		}
+
+		if ( $keys !== array() ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$wpdb->query( "ALTER TABLE {$table} DROP INDEX mapping" );
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->query( "ALTER TABLE {$table} ADD UNIQUE KEY mapping (integration,event,trigger_id,course_id,certificate_id)" );
 	}
 
 	/**

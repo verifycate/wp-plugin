@@ -12,6 +12,7 @@ namespace Verifycate;
 use Verifycate\Admin\Admin;
 use Verifycate\Api\CertificateCatalog;
 use Verifycate\Api\ClientFactory;
+use Verifycate\Frontend\Shortcodes;
 use Verifycate\Frontend\Wallet;
 use Verifycate\Integrations\Registry;
 use Verifycate\Issuance\AttributeMapper;
@@ -148,6 +149,7 @@ final class Plugin {
 
 		( new Admin( $this->settings, $this->factory, $this->catalog, $this->mappings, $this->queue, $this->integrations ) )->register();
 		( new Wallet( $this->settings, $this->factory ) )->register();
+		( new Shortcodes( $this->settings, $this->factory ) )->register();
 
 		$this->integrations->registerAll( array( $this->issuance, 'handle' ) );
 

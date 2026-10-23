@@ -84,7 +84,6 @@ final class MappingsPage {
 		$editing_id       = isset( $_GET['mapping'] ) ? absint( wp_unslash( (string) $_GET['mapping'] ) ) : 0;
 		$is_editor        = in_array( $action, array( 'new', 'edit' ), true ) || $editing_id > 0;
 		$editing          = $editing_id > 0 ? $this->mappings->find( $editing_id ) : null;
-		$mappings         = $this->mappings->all();
 		$catalog          = $this->catalog->all();
 		$active_catalog   = array_values(
 			array_filter(
@@ -95,7 +94,63 @@ final class MappingsPage {
 			)
 		);
 		$auto_certificate = ( null === $editing && 1 === count( $active_catalog ) ) ? $active_catalog[0]['id'] : '';
-		$mapping_url      = add_query_arg( 'page', 'verifycate-mappings', admin_url( 'admin.php' ) );
+		$trigger_event    = $editing ? $editing->getEvent() : Mapping::EVENT_COURSE_COMPLETED;
+		$trigger_event    = in_array( $trigger_event, array( Mapping::EVENT_COURSE_COMPLETED, Mapping::EVENT_QUIZ_PASSED, Mapping::EVENT_LESSON_COMPLETED ), true )
+			? $trigger_event
+			: Mapping::EVENT_COURSE_COMPLETED;
+		$score_min        = $editing ? $editing->getScoreMin() : 0.0;
+		$trigger_id       = $editing ? $editing->getTriggerId() : 0;
+		$available_lms    = $this->integrations->active();
+		$current_lms      = $editing ? $editing->getIntegration() : '';
+		$known_lms        = '' !== $current_lms ? $this->integrations->get( $current_lms ) : null;
+
+		if ( null !== $known_lms ) {
+			$available_lms[ $current_lms ] = $known_lms;
+		}
+
+		if ( '' === $current_lms || ! isset( $available_lms[ $current_lms ] ) ) {
+			$current_lms = (string) array_key_first( $available_lms );
+		}
+
+		$object_value    = $editing ? (string) $editing->getCourseId() . ':' . (string) $trigger_id : '0:0';
+		$mappings_url    = add_query_arg( 'page', 'verifycate-mappings', admin_url( 'admin.php' ) );
+		$new_mapping_url = add_query_arg(
+			array(
+				'page'   => 'verifycate-mappings',
+				'action' => 'new',
+			),
+			admin_url( 'admin.php' )
+		);
+
+		$search      = '';
+		$paged       = 1;
+		$per_page    = 20;
+		$total       = 0;
+		$total_pages = 1;
+		$orderby     = 'id';
+		$order       = 'desc';
+		$mappings    = array();
+
+		if ( ! $is_editor ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen state.
+			$search = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['s'] ) ) : '';
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen state.
+			$paged = isset( $_GET['paged'] ) ? max( 1, absint( wp_unslash( (string) $_GET['paged'] ) ) ) : 1;
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen state.
+			$orderby = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( (string) $_GET['orderby'] ) ) : 'id';
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen state.
+			$order = isset( $_GET['order'] ) && 'asc' === strtolower( sanitize_key( wp_unslash( (string) $_GET['order'] ) ) ) ? 'asc' : 'desc';
+
+			$allowed_orderby = array( 'id', 'course', 'certificate', 'status', 'repeat', 'release' );
+			if ( ! in_array( $orderby, $allowed_orderby, true ) ) {
+				$orderby = 'id';
+			}
+
+			$total       = $this->mappings->count( $search );
+			$total_pages = max( 1, (int) ceil( $total / $per_page ) );
+			$paged       = min( $paged, $total_pages );
+			$mappings    = $this->mappings->paginate( $paged, $per_page, $search, $orderby, $order );
+		}
 
 		$attribute_values      = $editing ? $editing->getAttributes() : array();
 		$attribute_certificate = $editing ? $editing->getCertificateId() : $auto_certificate;
@@ -105,31 +160,17 @@ final class MappingsPage {
 		?>
 		<div class="wrap verifycate-wrap">
 			<?php if ( $is_editor ) : ?>
-				<a class="button button-link verifycate-back-link" href="<?php echo esc_url( $mapping_url ); ?>">
-					← <?php esc_html_e( 'Back to mappings', 'verifycate' ); ?>
-				</a>
-				<h1><?php echo null === $editing ? esc_html__( 'Add mapping', 'verifycate' ) : esc_html__( 'Edit mapping', 'verifycate' ); ?></h1>
+				<h1><?php echo null === $editing ? esc_html__( 'Add Certificate Mapping', 'verifycate' ) : esc_html__( 'Edit Certificate Mapping', 'verifycate' ); ?></h1>
 			<?php else : ?>
 				<div class="verifycate-heading-row">
-					<h1><?php esc_html_e( 'Mappings', 'verifycate' ); ?></h1>
-					<a class="button button-primary" href="
-					<?php
-					echo esc_url(
-						add_query_arg(
-							array(
-								'page'   => 'verifycate-mappings',
-								'action' => 'new',
-							),
-							admin_url( 'admin.php' )
-						)
-					);
-					?>
-															">
-						<?php esc_html_e( 'Add mapping', 'verifycate' ); ?>
+					<h1><?php esc_html_e( 'Certificate Mappings', 'verifycate' ); ?></h1>
+					<a class="button button-primary verifycate-add-button" href="<?php echo esc_url( $new_mapping_url ); ?>">
+						<?php esc_html_e( 'Add Mapping', 'verifycate' ); ?>
+						<span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span>
 					</a>
 				</div>
 				<p class="verifycate-lede">
-					<?php esc_html_e( 'Choose a course and the certificate to issue when a learner completes it. One certificate can cover an entire catalogue with the “Any course” option.', 'verifycate' ); ?>
+					<?php esc_html_e( 'Choose the LMS, completion trigger and certificate. One mapping can cover an entire catalogue or a group of items with the “Any” options.', 'verifycate' ); ?>
 				</p>
 			<?php endif; ?>
 
@@ -150,89 +191,205 @@ final class MappingsPage {
 			<?php endif; ?>
 
 			<?php if ( ! $is_editor ) : ?>
-				<?php if ( $mappings === array() ) : ?>
-					<div class="verifycate-empty">
-						<span class="dashicons dashicons-awards" aria-hidden="true"></span>
-						<h2><?php esc_html_e( 'Map your first course', 'verifycate' ); ?></h2>
-						<p><?php esc_html_e( 'Choose a course and the certificate to issue. When a learner completes it, Verifycate creates and delivers the certificate.', 'verifycate' ); ?></p>
-						<a class="button button-primary" href="
-						<?php
-						echo esc_url(
-							add_query_arg(
-								array(
-									'page'   => 'verifycate-mappings',
-									'action' => 'new',
-								),
-								admin_url( 'admin.php' )
-							)
-						);
-						?>
-																"><?php esc_html_e( 'Add your first mapping', 'verifycate' ); ?></a>
+				<?php if ( $total > 0 || '' !== $search ) : ?>
+					<div class="verifycate-table-toolbar">
+						<?php if ( $total > 0 ) : ?>
+							<div class="verifycate-bulk-actions">
+								<label class="screen-reader-text" for="verifycate-bulk-action"><?php esc_html_e( 'Select bulk action', 'verifycate' ); ?></label>
+								<select id="verifycate-bulk-action" name="bulk_action" form="verifycate-bulk-form">
+									<option value="-1"><?php esc_html_e( 'Bulk actions', 'verifycate' ); ?></option>
+									<option value="delete"><?php esc_html_e( 'Delete permanently', 'verifycate' ); ?></option>
+								</select>
+								<button type="submit" class="button" form="verifycate-bulk-form"><?php esc_html_e( 'Apply', 'verifycate' ); ?></button>
+							</div>
+						<?php endif; ?>
+						<form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" class="verifycate-search-form">
+							<input type="hidden" name="page" value="verifycate-mappings" />
+							<?php if ( 'id' !== $orderby ) : ?>
+								<input type="hidden" name="orderby" value="<?php echo esc_attr( $orderby ); ?>" />
+								<input type="hidden" name="order" value="<?php echo esc_attr( $order ); ?>" />
+							<?php endif; ?>
+							<label class="screen-reader-text" for="verifycate-mapping-search"><?php esc_html_e( 'Search certificate mappings', 'verifycate' ); ?></label>
+							<input type="search" id="verifycate-mapping-search" name="s" value="<?php echo esc_attr( $search ); ?>" placeholder="<?php esc_attr_e( 'Search course or certificate…', 'verifycate' ); ?>" />
+							<button type="submit" class="button"><?php esc_html_e( 'Search', 'verifycate' ); ?></button>
+							<?php if ( '' !== $search ) : ?>
+								<a class="button button-link" href="<?php echo esc_url( $mappings_url ); ?>"><?php esc_html_e( 'Clear', 'verifycate' ); ?></a>
+							<?php endif; ?>
+						</form>
 					</div>
-				<?php else : ?>
-					<h2><?php esc_html_e( 'Saved mappings', 'verifycate' ); ?></h2>
-					<table class="wp-list-table widefat fixed striped verifycate-table">
-						<thead>
-							<tr>
-								<th><?php esc_html_e( 'Status', 'verifycate' ); ?></th>
-								<th><?php esc_html_e( 'Course', 'verifycate' ); ?></th>
-								<th><?php esc_html_e( 'Certificate', 'verifycate' ); ?></th>
-								<th><?php esc_html_e( 'Attributes', 'verifycate' ); ?></th>
-								<th><?php esc_html_e( 'Repeat completions', 'verifycate' ); ?></th>
-								<th><?php esc_html_e( 'Release', 'verifycate' ); ?></th>
-								<th><?php esc_html_e( 'Actions', 'verifycate' ); ?></th>
-							</tr>
-						</thead>
-						<tbody>
-							<?php foreach ( $mappings as $mapping ) : ?>
+				<?php endif; ?>
+
+				<?php if ( $total === 0 ) : ?>
+					<?php if ( '' !== $search ) : ?>
+						<div class="verifycate-empty verifycate-empty--search">
+							<span class="dashicons dashicons-search" aria-hidden="true"></span>
+							<h2><?php esc_html_e( 'No mappings found', 'verifycate' ); ?></h2>
+							<p>
 								<?php
-								$edit_url = add_query_arg(
-									array(
-										'page'    => 'verifycate-mappings',
-										'action'  => 'edit',
-										'mapping' => $mapping->getId(),
-									),
-									admin_url( 'admin.php' )
+								printf(
+									/* translators: %s: search term. */
+									esc_html__( 'No certificate mappings match “%s”.', 'verifycate' ),
+									esc_html( $search )
 								);
 								?>
+							</p>
+							<a class="button" href="<?php echo esc_url( $mappings_url ); ?>"><?php esc_html_e( 'Clear search', 'verifycate' ); ?></a>
+						</div>
+					<?php else : ?>
+						<div class="verifycate-empty">
+							<span class="dashicons dashicons-awards" aria-hidden="true"></span>
+							<h2><?php esc_html_e( 'Map your first course', 'verifycate' ); ?></h2>
+							<p><?php esc_html_e( 'Choose the LMS, trigger and course, quiz or lesson to issue a certificate for.', 'verifycate' ); ?></p>
+							<a class="button button-primary verifycate-add-button" href="<?php echo esc_url( $new_mapping_url ); ?>">
+								<?php esc_html_e( 'Add your first mapping', 'verifycate' ); ?>
+								<span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span>
+							</a>
+						</div>
+					<?php endif; ?>
+				<?php else : ?>
+					<form id="verifycate-bulk-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+						<input type="hidden" name="action" value="verifycate_bulk_mappings" />
+						<?php wp_nonce_field( 'verifycate_bulk_mappings' ); ?>
+
+						<table class="wp-list-table widefat fixed striped verifycate-table">
+							<thead>
 								<tr>
-									<td>
-										<span class="verifycate-pill <?php echo $mapping->isEnabled() ? 'is-on' : 'is-off'; ?>">
-											<?php echo $mapping->isEnabled() ? esc_html__( 'Enabled', 'verifycate' ) : esc_html__( 'Disabled', 'verifycate' ); ?>
-										</span>
-									</td>
-									<td><?php echo esc_html( $this->courseLabel( $mapping ) ); ?></td>
-									<td>
-										<?php echo esc_html( $this->certificateLabel( $mapping ) ); ?><br />
-										<code><?php echo esc_html( $mapping->getCertificateId() ); ?></code>
-									</td>
-									<td><?php echo esc_html( (string) count( $mapping->getAttributes() ) ); ?></td>
-									<td>
-										<?php
-										echo Mapping::DUPLICATE_REISSUE === $mapping->getDuplicatePolicy()
-											? esc_html__( 'Issue again', 'verifycate' )
-											: esc_html__( 'Skip duplicates', 'verifycate' );
-										?>
-									</td>
-									<td><?php echo $mapping->shouldAutoIssue() ? esc_html__( 'Immediately', 'verifycate' ) : esc_html__( 'Leave pending', 'verifycate' ); ?></td>
-									<td class="verifycate-row-actions">
-										<a class="button button-small" href="<?php echo esc_url( $edit_url ); ?>">
-											<?php esc_html_e( 'Edit', 'verifycate' ); ?>
-										</a>
-										<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="verifycate-delete-mapping">
-											<input type="hidden" name="action" value="verifycate_delete_mapping" />
-											<input type="hidden" name="mapping_id" value="<?php echo esc_attr( (string) $mapping->getId() ); ?>" />
-											<?php wp_nonce_field( 'verifycate_delete_mapping' ); ?>
-											<button type="submit" class="button button-small button-link-delete"><?php esc_html_e( 'Delete', 'verifycate' ); ?></button>
-										</form>
-									</td>
+									<th scope="col" class="manage-column column-cb check-column">
+										<label class="screen-reader-text" for="verifycate-select-all"><?php esc_html_e( 'Select all mappings', 'verifycate' ); ?></label>
+										<input id="verifycate-select-all" type="checkbox" />
+									</th>
+									<?php $this->renderSortableHeader( 'course', __( 'Course', 'verifycate' ), $orderby, $order, $search ); ?>
+									<?php $this->renderSortableHeader( 'certificate', __( 'Certificate Name', 'verifycate' ), $orderby, $order, $search ); ?>
+									<th scope="col"><?php esc_html_e( 'Trigger', 'verifycate' ); ?></th>
+									<?php $this->renderSortableHeader( 'status', __( 'Status', 'verifycate' ), $orderby, $order, $search ); ?>
+									<th scope="col"><?php esc_html_e( 'Attributes', 'verifycate' ); ?></th>
+									<?php $this->renderSortableHeader( 'repeat', __( 'Repeat completions', 'verifycate' ), $orderby, $order, $search ); ?>
+									<?php $this->renderSortableHeader( 'release', __( 'Automatic release', 'verifycate' ), $orderby, $order, $search ); ?>
+									<th scope="col"><?php esc_html_e( 'Actions', 'verifycate' ); ?></th>
 								</tr>
-							<?php endforeach; ?>
-						</tbody>
-					</table>
+							</thead>
+							<tbody>
+								<?php foreach ( $mappings as $mapping ) : ?>
+									<?php
+									$mapping_id = $mapping->getId();
+									$edit_url   = add_query_arg(
+										array(
+											'page'    => 'verifycate-mappings',
+											'action'  => 'edit',
+											'mapping' => $mapping_id,
+										),
+										admin_url( 'admin.php' )
+									);
+									?>
+									<tr>
+										<th scope="row" class="check-column">
+											<input
+												type="checkbox"
+												id="verifycate-mapping-<?php echo esc_attr( (string) $mapping_id ); ?>"
+												name="mapping_ids[]"
+												value="<?php echo esc_attr( (string) $mapping_id ); ?>"
+												aria-label="<?php echo esc_attr( sprintf( /* translators: %s: course label. */ __( 'Select %s', 'verifycate' ), $this->courseLabel( $mapping ) ) ); ?>"
+											/>
+										</th>
+										<td><?php echo esc_html( $this->courseLabel( $mapping ) ); ?></td>
+										<td>
+											<?php echo esc_html( $this->certificateLabel( $mapping ) ); ?><br />
+											<code><?php echo esc_html( $mapping->getCertificateId() ); ?></code>
+										</td>
+										<td><?php echo esc_html( $this->triggerLabel( $mapping ) ); ?></td>
+										<td>
+											<span class="verifycate-pill <?php echo $mapping->isEnabled() ? 'is-on' : 'is-off'; ?>">
+												<?php echo $mapping->isEnabled() ? esc_html__( 'Enabled', 'verifycate' ) : esc_html__( 'Disabled', 'verifycate' ); ?>
+											</span>
+										</td>
+										<td><?php echo esc_html( (string) count( $mapping->getAttributes() ) ); ?></td>
+										<td>
+											<?php
+											echo Mapping::DUPLICATE_REISSUE === $mapping->getDuplicatePolicy()
+												? esc_html__( 'Issue again', 'verifycate' )
+												: esc_html__( 'Skip duplicates', 'verifycate' );
+											?>
+										</td>
+										<td><?php echo $mapping->shouldAutoIssue() ? esc_html__( 'Yes', 'verifycate' ) : esc_html__( 'No', 'verifycate' ); ?></td>
+										<td class="verifycate-row-actions">
+											<a class="button button-small" href="<?php echo esc_url( $edit_url ); ?>">
+												<?php esc_html_e( 'Edit', 'verifycate' ); ?>
+											</a>
+											<button
+												type="submit"
+												form="verifycate-delete-<?php echo esc_attr( (string) $mapping_id ); ?>"
+												class="button button-small verifycate-row-delete"
+											>
+												<?php esc_html_e( 'Delete', 'verifycate' ); ?>
+											</button>
+										</td>
+									</tr>
+								<?php endforeach; ?>
+							</tbody>
+						</table>
+					</form>
+
+					<?php foreach ( $mappings as $mapping ) : ?>
+						<form
+							id="verifycate-delete-<?php echo esc_attr( (string) $mapping->getId() ); ?>"
+							method="post"
+							action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>"
+							class="verifycate-delete-mapping verifycate-delete-mapping--hidden"
+						>
+							<input type="hidden" name="action" value="verifycate_delete_mapping" />
+							<input type="hidden" name="mapping_id" value="<?php echo esc_attr( (string) $mapping->getId() ); ?>" />
+							<?php wp_nonce_field( 'verifycate_delete_mapping' ); ?>
+						</form>
+					<?php endforeach; ?>
+
+					<?php if ( $total_pages > 1 ) : ?>
+						<div class="tablenav">
+							<div class="tablenav-pages">
+								<span class="displaying-num">
+									<?php
+									printf(
+										/* translators: %s: mapping count. */
+										esc_html( _n( '%s mapping', '%s mappings', $total, 'verifycate' ) ),
+										esc_html( number_format_i18n( $total ) )
+									);
+									?>
+								</span>
+								<?php
+								$pagination_args = array(
+									'page'  => 'verifycate-mappings',
+									'paged' => '%#%',
+								);
+
+								if ( '' !== $search ) {
+									$pagination_args['s'] = $search;
+								}
+
+								if ( 'id' !== $orderby ) {
+									$pagination_args['orderby'] = $orderby;
+									$pagination_args['order']   = $order;
+								}
+
+								$pagination = paginate_links(
+									array(
+										'base'      => add_query_arg( $pagination_args, admin_url( 'admin.php' ) ),
+										'format'    => '',
+										'current'   => $paged,
+										'total'     => $total_pages,
+										'prev_text' => '‹',
+										'next_text' => '›',
+										'type'      => 'plain',
+									)
+								);
+
+								if ( is_string( $pagination ) && '' !== $pagination ) {
+									echo wp_kses_post( $pagination );
+								}
+								?>
+							</div>
+						</div>
+					<?php endif; ?>
 				<?php endif; ?>
 			<?php endif; ?>
-
 			<?php if ( $is_editor ) : ?>
 			<p class="verifycate-lede">
 				<?php esc_html_e( 'Choose the completion and the certificate to issue. Options on the right control repeat completions and release.', 'verifycate' ); ?>
@@ -252,46 +409,27 @@ final class MappingsPage {
 							</summary>
 							<div class="verifycate-panel-body">
 								<div class="verifycate-field">
-									<label class="verifycate-field-label" for="verifycate-source"><?php esc_html_e( 'When this is completed', 'verifycate' ); ?></label>
+									<label class="verifycate-field-label" for="verifycate-lms"><?php esc_html_e( 'LMS plugin', 'verifycate' ); ?></label>
 									<div class="verifycate-combobox" data-combobox>
-										<select id="verifycate-source" name="source" class="regular-text verifycate-combobox__native" data-search-placeholder="<?php esc_attr_e( 'Search courses…', 'verifycate' ); ?>" data-empty="<?php esc_attr_e( 'No matching courses.', 'verifycate' ); ?>" data-required="1" required>
-											<option value=""><?php esc_html_e( 'Select a course…', 'verifycate' ); ?></option>
-										<?php foreach ( $this->integrations->courseGroups() as $group ) : ?>
-											<optgroup label="<?php echo esc_attr( $group['label'] ); ?>">
-												<option value="<?php echo esc_attr( $group['id'] . ':0' ); ?>" <?php selected( $this->sourceValue( $editing ), $group['id'] . ':0' ); ?>>
-													<?php
-													printf(
-														/* translators: %s: LMS name. */
-														esc_html__( 'Any %s course', 'verifycate' ),
-														esc_html( $group['label'] )
-													);
-													?>
+										<select id="verifycate-lms" name="lms" class="regular-text verifycate-combobox__native" data-search-placeholder="<?php esc_attr_e( 'Search LMS plugins…', 'verifycate' ); ?>" data-empty="<?php esc_attr_e( 'No matching plugins.', 'verifycate' ); ?>">
+											<?php foreach ( $available_lms as $lms_id => $lms ) : ?>
+												<option value="<?php echo esc_attr( (string) $lms_id ); ?>" <?php selected( $current_lms, (string) $lms_id ); ?>>
+													<?php echo 'custom' === $lms_id ? esc_html__( 'Custom hook', 'verifycate' ) : esc_html( $lms->getLabel() ); ?>
 												</option>
-												<?php foreach ( $group['courses'] as $course_id => $title ) : ?>
-													<option value="<?php echo esc_attr( $group['id'] . ':' . $course_id ); ?>" <?php selected( $this->sourceValue( $editing ), $group['id'] . ':' . $course_id ); ?>>
-														<?php echo esc_html( $title ); ?> (#<?php echo esc_html( (string) $course_id ); ?>)
-													</option>
-												<?php endforeach; ?>
-											</optgroup>
-										<?php endforeach; ?>
-										<optgroup label="<?php esc_attr_e( 'Other', 'verifycate' ); ?>">
-											<option value="custom:0" <?php selected( $editing && 'custom' === $editing->getIntegration(), true ); ?>>
-												<?php esc_html_e( 'Custom hook', 'verifycate' ); ?>
-											</option>
-										</optgroup>
+											<?php endforeach; ?>
 										</select>
 										<div class="verifycate-combobox__control" hidden>
-											<input type="text" class="verifycate-combobox__input" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="verifycate-source-list" autocomplete="off" />
+											<input type="text" class="verifycate-combobox__input" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="verifycate-lms-list" autocomplete="off" />
 											<button type="button" class="verifycate-combobox__toggle" aria-label="<?php esc_attr_e( 'Show options', 'verifycate' ); ?>">▾</button>
-											<ul class="verifycate-combobox__list" id="verifycate-source-list" role="listbox" hidden></ul>
+											<ul class="verifycate-combobox__list" id="verifycate-lms-list" role="listbox" hidden></ul>
 										</div>
 									</div>
 									<p class="description">
-										<?php esc_html_e( 'Course lists come from active LMS plugins. Use the custom hook for membership, e-commerce and in-house course plugins.', 'verifycate' ); ?>
+										<?php esc_html_e( 'Choose the plugin that reports the completion.', 'verifycate' ); ?>
 									</p>
 								</div>
 
-								<div class="verifycate-custom-fields" <?php echo $editing && 'custom' === $editing->getIntegration() ? '' : 'hidden'; ?>>
+								<div class="verifycate-custom-fields" <?php echo 'custom' === $current_lms ? '' : 'hidden'; ?>>
 									<div class="verifycate-field">
 										<label class="verifycate-field-label" for="verifycate-custom-event"><?php esc_html_e( 'Custom event name', 'verifycate' ); ?></label>
 										<input
@@ -321,6 +459,64 @@ final class MappingsPage {
 										<?php esc_html_e( 'The event name must match the third argument of do_action( \'verifycate_course_completed\', … ).', 'verifycate' ); ?>
 									</p>
 								</div>
+
+								<div class="verifycate-trigger-fields" <?php echo 'custom' === $current_lms ? 'hidden' : ''; ?>>
+									<div class="verifycate-field">
+										<label class="verifycate-field-label" for="verifycate-trigger"><?php esc_html_e( 'Trigger', 'verifycate' ); ?></label>
+										<div class="verifycate-combobox" data-combobox>
+											<select id="verifycate-trigger" name="trigger" class="regular-text verifycate-combobox__native" data-search-placeholder="<?php esc_attr_e( 'Search triggers…', 'verifycate' ); ?>" data-empty="<?php esc_attr_e( 'No matching triggers.', 'verifycate' ); ?>">
+												<option value="<?php echo esc_attr( Mapping::EVENT_COURSE_COMPLETED ); ?>" <?php selected( $trigger_event, Mapping::EVENT_COURSE_COMPLETED ); ?>>
+													<?php esc_html_e( 'Course completed', 'verifycate' ); ?>
+												</option>
+												<option value="<?php echo esc_attr( Mapping::EVENT_QUIZ_PASSED ); ?>" <?php selected( $trigger_event, Mapping::EVENT_QUIZ_PASSED ); ?>>
+													<?php esc_html_e( 'Quiz passed', 'verifycate' ); ?>
+												</option>
+												<option value="<?php echo esc_attr( Mapping::EVENT_LESSON_COMPLETED ); ?>" <?php selected( $trigger_event, Mapping::EVENT_LESSON_COMPLETED ); ?>>
+													<?php esc_html_e( 'Lesson completed', 'verifycate' ); ?>
+												</option>
+											</select>
+											<div class="verifycate-combobox__control" hidden>
+												<input type="text" class="verifycate-combobox__input" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="verifycate-trigger-list" autocomplete="off" />
+												<button type="button" class="verifycate-combobox__toggle" aria-label="<?php esc_attr_e( 'Show options', 'verifycate' ); ?>">▾</button>
+												<ul class="verifycate-combobox__list" id="verifycate-trigger-list" role="listbox" hidden></ul>
+											</div>
+										</div>
+									</div>
+
+									<div class="verifycate-field">
+										<label class="verifycate-field-label" id="verifycate-object-label" for="verifycate-object"><?php esc_html_e( 'Course', 'verifycate' ); ?></label>
+										<div class="verifycate-combobox" data-combobox>
+											<select id="verifycate-object" name="object" class="regular-text verifycate-combobox__native" data-selected="<?php echo esc_attr( $object_value ); ?>" data-search-placeholder="<?php esc_attr_e( 'Search objects…', 'verifycate' ); ?>" data-empty="<?php esc_attr_e( 'No matching objects.', 'verifycate' ); ?>">
+												<option value=""><?php esc_html_e( 'Loading options…', 'verifycate' ); ?></option>
+											</select>
+											<div class="verifycate-combobox__control" hidden>
+												<input type="text" class="verifycate-combobox__input" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="verifycate-object-list" autocomplete="off" />
+												<button type="button" class="verifycate-combobox__toggle" aria-label="<?php esc_attr_e( 'Show options', 'verifycate' ); ?>">▾</button>
+												<ul class="verifycate-combobox__list" id="verifycate-object-list" role="listbox" hidden></ul>
+											</div>
+										</div>
+										<p class="description">
+											<?php esc_html_e( 'Select the course, quiz or lesson. “Any” options cover multiple items.', 'verifycate' ); ?>
+										</p>
+									</div>
+
+									<div class="verifycate-field verifycate-trigger-score" <?php echo Mapping::EVENT_QUIZ_PASSED === $trigger_event ? '' : 'hidden'; ?>>
+										<label class="verifycate-field-label" for="verifycate-score-min"><?php esc_html_e( 'Minimum quiz score (%)', 'verifycate' ); ?></label>
+										<input
+											type="number"
+											id="verifycate-score-min"
+											name="score_min"
+											value="<?php echo esc_attr( (string) $score_min ); ?>"
+											min="0"
+											max="100"
+											step="0.01"
+											class="small-text"
+										/>
+										<p class="description">
+											<?php esc_html_e( 'Leave 0 to issue on any passing quiz.', 'verifycate' ); ?>
+										</p>
+									</div>
+								</div>
 							</div>
 						</details>
 
@@ -338,33 +534,18 @@ final class MappingsPage {
 										</div>
 									<?php endif; ?>
 									<?php if ( $catalog === array() ) : ?>
-										<input
-											type="text"
-											id="verifycate-certificate"
-											name="certificate_id"
-											value="<?php echo esc_attr( $editing ? $editing->getCertificateId() : '' ); ?>"
-											placeholder="00000000-0000-0000-0000-000000000000"
-											class="regular-text"
-											required
-										/>
-										<div class="verifycate-field verifycate-field--nested">
-											<label class="verifycate-field-label" for="verifycate-certificate-name"><?php esc_html_e( 'Certificate name', 'verifycate' ); ?> <span class="verifycate-muted"><?php esc_html_e( '(optional)', 'verifycate' ); ?></span></label>
-											<input
-												type="text"
-												id="verifycate-certificate-name"
-												name="certificate_name"
-												value="<?php echo esc_attr( $editing ? $editing->getCertificateName() : '' ); ?>"
-												placeholder="<?php esc_attr_e( 'Certificate name (optional)', 'verifycate' ); ?>"
-												class="regular-text"
-											/>
+										<div class="notice notice-warning inline">
+											<p><?php esc_html_e( 'The certificate list could not be loaded. Check the Configure page and try again.', 'verifycate' ); ?></p>
 										</div>
-										<p class="description">
-											<?php esc_html_e( 'The certificate list could not be loaded. Paste the certificate ID from the Verifycate dashboard, or connect the workspace and reload.', 'verifycate' ); ?>
-										</p>
-									<?php else : ?>
+									<?php endif; ?>
 									<div class="verifycate-combobox" data-combobox>
 										<select id="verifycate-certificate" name="certificate_id" class="regular-text verifycate-combobox__native" data-search-placeholder="<?php esc_attr_e( 'Search certificates…', 'verifycate' ); ?>" data-empty="<?php esc_attr_e( 'No matching certificates.', 'verifycate' ); ?>" data-required="1" required>
 											<option value=""><?php esc_html_e( 'Select a certificate…', 'verifycate' ); ?></option>
+											<?php if ( $catalog === array() && $editing && '' !== $editing->getCertificateId() ) : ?>
+												<option value="<?php echo esc_attr( $editing->getCertificateId() ); ?>" selected>
+													<?php echo esc_html( '' !== $editing->getCertificateName() ? $editing->getCertificateName() : $editing->getCertificateId() ); ?>
+												</option>
+											<?php endif; ?>
 											<?php
 											$found_current = false;
 											foreach ( $catalog as $certificate ) {
@@ -380,7 +561,7 @@ final class MappingsPage {
 												</option>
 												<?php
 											}
-											if ( $editing && ! $found_current ) :
+											if ( $editing && ! $found_current && $catalog !== array() ) :
 												?>
 												<option value="<?php echo esc_attr( $editing->getCertificateId() ); ?>" selected>
 													<?php echo esc_html( '' !== $editing->getCertificateName() ? $editing->getCertificateName() : $editing->getCertificateId() ); ?>
@@ -393,11 +574,9 @@ final class MappingsPage {
 											<ul class="verifycate-combobox__list" id="verifycate-certificate-list" role="listbox" hidden></ul>
 										</div>
 									</div>
-										<p class="description">
-											<?php esc_html_e( 'Draft certificates queue recipients but cannot be released until the certificate is published in Verifycate.', 'verifycate' ); ?>
-										</p>
-									<?php endif; ?>
-									<p class="verifycate-link-row">
+									<p class="description">
+										<?php esc_html_e( 'Draft certificates queue recipients but cannot be released until the certificate is published in Verifycate.', 'verifycate' ); ?>
+									</p><p class="verifycate-link-row">
 										<a href="<?php echo esc_url( Links::newCertificateUrl( $this->settings ) ); ?>" target="_blank" rel="noopener noreferrer">
 											<?php esc_html_e( 'Create a certificate in Verifycate', 'verifycate' ); ?>
 										</a>
@@ -443,13 +622,15 @@ final class MappingsPage {
 									</select>
 								</div>
 
-								<div class="verifycate-field">
-									<div class="verifycate-field-label-row">
-										<span class="verifycate-field-label"><?php esc_html_e( 'Certificate release', 'verifycate' ); ?></span>
-										<span class="verifycate-info" tabindex="0" aria-describedby="verifycate-release-help">
-											<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
-											<span class="verifycate-tooltip" id="verifycate-release-help" role="tooltip"><?php esc_html_e( 'When enabled, certificates are issued immediately after a recipient is imported. When disabled, recipients are queued for manual release from Verifycate.', 'verifycate' ); ?></span>
-										</span>
+								<div class="verifycate-toggle-row">
+									<div class="verifycate-toggle-row__label">
+										<div class="verifycate-field-label-row">
+											<label class="verifycate-field-label" for="verifycate-auto-issue"><?php esc_html_e( 'Automatic release', 'verifycate' ); ?></label>
+											<span class="verifycate-info" tabindex="0" aria-describedby="verifycate-release-help">
+												<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
+												<span class="verifycate-tooltip" id="verifycate-release-help" role="tooltip"><?php esc_html_e( 'When enabled, certificates are issued immediately after a recipient is imported. When disabled, recipients are queued for manual release from Verifycate.', 'verifycate' ); ?></span>
+											</span>
+										</div>
 									</div>
 									<label class="verifycate-toggle" for="verifycate-auto-issue">
 										<input
@@ -462,13 +643,14 @@ final class MappingsPage {
 											<?php checked( $editing ? $editing->shouldAutoIssue() : true ); ?>
 										/>
 										<span class="verifycate-toggle__track" aria-hidden="true"></span>
-										<span class="verifycate-toggle__label"><?php esc_html_e( 'Automatic release', 'verifycate' ); ?></span>
 									</label>
 								</div>
 
-								<div class="verifycate-field">
-									<div class="verifycate-field-label-row">
-										<span class="verifycate-field-label"><?php esc_html_e( 'Status', 'verifycate' ); ?></span>
+								<div class="verifycate-toggle-row">
+									<div class="verifycate-toggle-row__label">
+										<div class="verifycate-field-label-row">
+											<label class="verifycate-field-label" for="verifycate-enabled"><?php esc_html_e( 'Status', 'verifycate' ); ?></label>
+										</div>
 									</div>
 									<label class="verifycate-toggle" for="verifycate-enabled">
 										<input
@@ -481,13 +663,11 @@ final class MappingsPage {
 											<?php checked( $editing ? $editing->isEnabled() : true ); ?>
 										/>
 										<span class="verifycate-toggle__track" aria-hidden="true"></span>
-										<span class="verifycate-toggle__label"><?php esc_html_e( 'Enabled', 'verifycate' ); ?></span>
 									</label>
 								</div>
 							</div>
 
 							<div class="verifycate-sidebar-section">
-								<h2 class="verifycate-sidebar-title"><?php esc_html_e( 'Details', 'verifycate' ); ?></h2>
 								<dl class="verifycate-meta-list">
 									<div>
 										<dt><?php esc_html_e( 'Mapping ID', 'verifycate' ); ?></dt>
@@ -520,7 +700,7 @@ final class MappingsPage {
 										<input type="hidden" name="mapping_id" value="<?php echo esc_attr( (string) $editing->getId() ); ?>" />
 										<?php wp_nonce_field( 'verifycate_delete_mapping' ); ?>
 										<button type="submit" class="button-link-delete verifycate-delete-button">
-											<?php esc_html_e( 'Delete mapping', 'verifycate' ); ?>
+											<?php esc_html_e( 'Delete', 'verifycate' ); ?>
 										</button>
 									</form>
 								<?php endif; ?>
@@ -630,17 +810,39 @@ final class MappingsPage {
 		return is_string( $date ) && '' !== $date ? $date : '—';
 	}
 	/**
-	 * Source select value for a mapping.
+	 * Render a sortable list-table header.
 	 *
-	 * @param Mapping|null $mapping Mapping.
-	 * @return string
+	 * @param string $key Sort key.
+	 * @param string $label Header label.
+	 * @param string $orderby Current sort key.
+	 * @param string $order Current sort direction.
+	 * @param string $search Current search term.
+	 * @return void
 	 */
-	private function sourceValue( ?Mapping $mapping ): string {
-		if ( null === $mapping ) {
-			return '';
+	private function renderSortableHeader( string $key, string $label, string $orderby, string $order, string $search ): void {
+		$is_sorted  = $key === $orderby;
+		$next_order = $is_sorted && 'asc' === $order ? 'desc' : 'asc';
+		$class      = $is_sorted ? 'sorted ' . $order : 'sortable ' . $next_order;
+		$args       = array(
+			'page'    => 'verifycate-mappings',
+			'orderby' => $key,
+			'order'   => $next_order,
+		);
+
+		if ( '' !== $search ) {
+			$args['s'] = $search;
 		}
 
-		return $mapping->getIntegration() . ':' . $mapping->getCourseId();
+		$url       = add_query_arg( $args, admin_url( 'admin.php' ) );
+		$aria_sort = $is_sorted ? ( 'asc' === $order ? 'ascending' : 'descending' ) : 'none';
+		?>
+		<th scope="col" class="manage-column <?php echo esc_attr( $class ); ?>" aria-sort="<?php echo esc_attr( $aria_sort ); ?>">
+			<a href="<?php echo esc_url( $url ); ?>">
+				<span><?php echo esc_html( $label ); ?></span>
+				<span class="sorting-indicator" aria-hidden="true"></span>
+			</a>
+		</th>
+		<?php
 	}
 
 	/**
@@ -691,6 +893,50 @@ final class MappingsPage {
 	 */
 	private function certificateLabel( Mapping $mapping ): string {
 		return '' !== $mapping->getCertificateName() ? $mapping->getCertificateName() : $mapping->getCertificateId();
+	}
+
+	/**
+	 * Human-readable trigger label.
+	 *
+	 * @param Mapping $mapping Mapping.
+	 * @return string
+	 */
+	private function triggerLabel( Mapping $mapping ): string {
+		if ( 'custom' === $mapping->getIntegration() ) {
+			return sprintf(
+				/* translators: %s: custom event name. */
+				__( 'Custom: %s', 'verifycate' ),
+				$mapping->getEvent()
+			);
+		}
+
+		switch ( $mapping->getEvent() ) {
+			case Mapping::EVENT_QUIZ_PASSED:
+				$label = __( 'Quiz passed', 'verifycate' );
+				break;
+			case Mapping::EVENT_LESSON_COMPLETED:
+				$label = __( 'Lesson completed', 'verifycate' );
+				break;
+			case Mapping::EVENT_COURSE_COMPLETED:
+				$label = __( 'Course completed', 'verifycate' );
+				break;
+			default:
+				$label = $mapping->getEvent();
+		}
+
+		if ( $mapping->getTriggerId() > 0 ) {
+			$title = get_the_title( $mapping->getTriggerId() );
+			$title = is_string( $title ) && '' !== $title ? $title : '#' . $mapping->getTriggerId();
+
+			return sprintf(
+				/* translators: 1: trigger name, 2: quiz or lesson title. */
+				__( '%1$s — %2$s', 'verifycate' ),
+				$label,
+				$title
+			);
+		}
+
+		return $label;
 	}
 
 	/**

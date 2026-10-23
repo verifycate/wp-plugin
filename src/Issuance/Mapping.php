@@ -20,6 +20,12 @@ final class Mapping {
 
 	public const DUPLICATE_REISSUE = 'reissue';
 
+	public const EVENT_COURSE_COMPLETED = 'course_completed';
+
+	public const EVENT_QUIZ_PASSED = 'quiz_passed';
+
+	public const EVENT_LESSON_COMPLETED = 'lesson_completed';
+
 	/**
 	 * Row id.
 	 *
@@ -40,6 +46,20 @@ final class Mapping {
 	 * @var string
 	 */
 	private string $event;
+
+	/**
+	 * Quiz, lesson or other trigger object id; 0 matches any object.
+	 *
+	 * @var int
+	 */
+	private int $triggerId;
+
+	/**
+	 * Minimum quiz score percentage; 0 means any passing score.
+	 *
+	 * @var float
+	 */
+	private float $scoreMin;
 
 	/**
 	 * Course id; 0 matches any course in the integration.
@@ -119,6 +139,8 @@ final class Mapping {
 	 * @param bool                  $enabled Enabled.
 	 * @param string                $createdAt Created timestamp.
 	 * @param string                $updatedAt Updated timestamp.
+	 * @param int                   $triggerId Trigger object id.
+	 * @param float                 $scoreMin Minimum quiz score.
 	 */
 	public function __construct(
 		int $id,
@@ -132,11 +154,15 @@ final class Mapping {
 		string $duplicatePolicy = self::DUPLICATE_SKIP,
 		bool $enabled = true,
 		string $createdAt = '',
-		string $updatedAt = ''
+		string $updatedAt = '',
+		int $triggerId = 0,
+		float $scoreMin = 0.0
 	) {
 		$this->id              = $id;
 		$this->integration     = $integration;
 		$this->event           = $event;
+		$this->triggerId       = max( 0, $triggerId );
+		$this->scoreMin        = max( 0.0, min( 100.0, $scoreMin ) );
 		$this->courseId        = $courseId;
 		$this->certificateId   = $certificateId;
 		$this->certificateName = $certificateName;
@@ -197,7 +223,9 @@ final class Mapping {
 			isset( $row['duplicate_policy'] ) && is_scalar( $row['duplicate_policy'] ) ? (string) $row['duplicate_policy'] : self::DUPLICATE_SKIP,
 			! empty( $row['enabled'] ),
 			isset( $row['created_at'] ) && is_scalar( $row['created_at'] ) ? (string) $row['created_at'] : '',
-			isset( $row['updated_at'] ) && is_scalar( $row['updated_at'] ) ? (string) $row['updated_at'] : ''
+			isset( $row['updated_at'] ) && is_scalar( $row['updated_at'] ) ? (string) $row['updated_at'] : '',
+			isset( $row['trigger_id'] ) ? (int) $row['trigger_id'] : 0,
+			isset( $row['score_min'] ) ? (float) $row['score_min'] : 0.0
 		);
 	}
 
@@ -211,6 +239,8 @@ final class Mapping {
 			'id'               => $this->id,
 			'integration'      => $this->integration,
 			'event'            => $this->event,
+			'trigger_id'       => $this->triggerId,
+			'score_min'        => $this->scoreMin,
 			'course_id'        => $this->courseId,
 			'certificate_id'   => $this->certificateId,
 			'certificate_name' => $this->certificateName,
@@ -229,9 +259,10 @@ final class Mapping {
 	 * @param string $integration Integration id.
 	 * @param int    $courseId Course id.
 	 * @param string $event Event name.
+	 * @param int    $triggerId Trigger object id.
 	 * @return bool
 	 */
-	public function matches( string $integration, int $courseId, string $event ): bool {
+	public function matches( string $integration, int $courseId, string $event, int $triggerId = 0 ): bool {
 		if ( $this->integration !== $integration ) {
 			return false;
 		}
@@ -241,6 +272,10 @@ final class Mapping {
 		}
 
 		if ( '' !== $this->event && $this->event !== $event ) {
+			return false;
+		}
+
+		if ( 0 !== $this->triggerId && $this->triggerId !== $triggerId ) {
 			return false;
 		}
 
@@ -272,6 +307,24 @@ final class Mapping {
 	 */
 	public function getEvent(): string {
 		return $this->event;
+	}
+
+	/**
+	 * Trigger object id.
+	 *
+	 * @return int
+	 */
+	public function getTriggerId(): int {
+		return $this->triggerId;
+	}
+
+	/**
+	 * Minimum quiz score percentage.
+	 *
+	 * @return float
+	 */
+	public function getScoreMin(): float {
+		return $this->scoreMin;
 	}
 
 	/**
