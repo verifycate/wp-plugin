@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:       Verifycate
- * Plugin URI:        https://verifycate.com
+ * Plugin URI:        https://github.com/verifycate/wp-plugin
  * Description:       Issue verifiable certificates from your WordPress LMS. Connects LearnDash, Tutor LMS, LearnPress, LifterLMS, Sensei and more to Verifycate.
  * Version:           0.1.0
  * Requires at least: 6.2
