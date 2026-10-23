@@ -46,6 +46,10 @@ connection, mapping and issuance.
 
 ### Release zip
 
+Download the latest plugin zip from
+[GitHub Releases](https://github.com/verifycate/wp-plugin/releases/latest), or
+build it locally with `composer build`.
+
 1. Upload the plugin zip to `/wp-content/plugins/verifycate/`, or install it
    through the WordPress plugins screen.
 2. Activate the plugin.
@@ -92,7 +96,11 @@ npm run plugin-zip        # JS-side zip helper
 
 CI runs the same checks on PHP 7.4–8.3, the official
 [Plugin Check](https://wordpress.org/plugins/plugin-check/) against the built
-plugin, and uploads the zip as an artifact.
+plugin, and uploads the zip as an artifact on every push and pull request.
+
+Pushing a `v*` tag runs `.github/workflows/release.yml`, rebuilds the zip from
+that tag, and publishes it as a GitHub Release. You can also start that workflow
+manually with an existing tag.
 
 ### CI and the private SDK
 
