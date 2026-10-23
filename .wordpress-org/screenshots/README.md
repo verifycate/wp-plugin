@@ -4,7 +4,9 @@ iPad Pro 13 landscape capture set at **2752 × 2064** (1376 × 1032 CSS at 2×).
 
 ## WordPress.org set
 
-Curated files in `.wordpress-org/screenshot-1.png` through `screenshot-12.png`:
+Curated files in `.wordpress-org/screenshot-1.png` through `screenshot-12.png`
+are the files to upload to the WordPress.org SVN `assets/` directory. They are
+selected from the larger guide library below, not generated separately.
 
 1. Get started — connection state, shortcode guide, and LMS status.
 2. Configure — workspace connection and API key.
