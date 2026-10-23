@@ -40,7 +40,7 @@ Suggested readme captions:
 
 ## Full guide set
 
-All 24 captures live in `screenshots/ipad-pro-13-landscape/`:
+All 24 captures live in `screenshots/full-set/`:
 
 | File | Scenario |
 | --- | --- |
