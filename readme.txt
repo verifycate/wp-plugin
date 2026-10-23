@@ -1,5 +1,5 @@
 === Verifycate ===
-Contributors: verifycate
+Contributors: aswinshenoy
 Tags: certificates, lms, learndash, tutor lms, learnpress
 Requires at least: 6.2
 Tested up to: 7.1
