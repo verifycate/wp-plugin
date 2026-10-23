@@ -11,13 +11,13 @@ through the [Verifycate PHP SDK](https://github.com/verifycate/php-sdk).
 
 ## Status
 
-`0.1.0`, unreleased. Not yet published on wordpress.org.
+`0.1.0`. Available from GitHub Releases; the WordPress.org listing is pending.
 
 ## Requirements
 
 - WordPress 6.2+
 - PHP 7.4+
-- A Verifycate account with an active Pro seat
+- An active Verifycate workspace with API access
 - A workspace API key with `certificates:read` and `certificates:write`
 
 ## What it does
@@ -64,15 +64,16 @@ the site.
 
 ## Development
 
-The plugin depends on the private `verifycate/php-sdk` package through a
-Composer path repository at `../php-sdk`. Keep the two checkouts side by side:
+The plugin uses the public `verifycate/php-sdk` package through a Composer VCS
+repository. Composer fetches the SDK automatically; no credentials are needed.
+Keep both checkouts side by side if you are working on the SDK too:
 
 ```bash
 mkdir -p ~/projects/verifycate-os
 cd ~/projects/verifycate-os
 
-git clone git@github.com:verifycate/wp-plugin.git
-git clone git@github.com:verifycate/php-sdk.git
+git clone https://github.com/verifycate/wp-plugin.git
+git clone https://github.com/verifycate/php-sdk.git
 
 cd wp-plugin
 composer install          # PHP dependencies, SDK included
@@ -102,17 +103,12 @@ Pushing a `v*` tag runs `.github/workflows/release.yml`, rebuilds the zip from
 that tag, and publishes it as a GitHub Release. You can also start that workflow
 manually with an existing tag.
 
-### CI and the private SDK
+### CI and the PHP SDK
 
-The PHP SDK repository is private, so CI clones it with a read-only deploy key.
-The key is stored as the `VERIFYCATE_SDK_DEPLOY_KEY` secret in this repository
-and the matching public key is a read-only deploy key on
-`verifycate/php-sdk`. The workflow writes the key to a temporary SSH identity and
-clones over SSH before `composer install`.
-
-For local development the path repository is enough; no key is needed. When both
-repositories become public at launch, delete the `VERIFYCATE_SDK_DEPLOY_KEY`
-secret and the read-only deploy key, then switch the workflow clone to HTTPS.
+The PHP SDK is public at
+[verifycate/php-sdk](https://github.com/verifycate/php-sdk). Composer resolves it
+through the VCS repository in `composer.json`; CI and release builds need no
+credentials.
 
 ## Supported LMS hooks
 

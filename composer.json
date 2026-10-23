@@ -26,14 +26,8 @@
 	],
 	"repositories": [
 		{
-			"type": "path",
-			"url": "../php-sdk",
-			"options": {
-				"symlink": false,
-				"versions": {
-					"verifycate/php-sdk": "0.1.0"
-				}
-			}
+			"type": "vcs",
+			"url": "https://github.com/verifycate/php-sdk"
 		}
 	],
 	"require": {

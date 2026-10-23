@@ -28,7 +28,8 @@ Supported course plugins:
 Highlights:
 
 * Automatic issuance on course completion, quiz passing or lesson completion,
-  with an "any course" option so one certificate can cover a whole catalogue.
+  with “Any” options so one mapping can cover a whole catalogue or a group of
+  items.
 * Optional minimum quiz scores, so a certificate is only issued after the learner
   reaches the required result.
 * Map learner and course data to certificate attributes with tokens such as
@@ -58,18 +59,37 @@ This plugin connects to the Verifycate API to create and issue digital
 certificates.
 
 * Service: Verifycate (https://verifycate.com)
+* API endpoint: https://api.verifycate.com
 * What is sent, and when: after an administrator connects the site with a
   Verifycate workspace API key and configures at least one course mapping, the
   plugin sends the learner's name, email address, the course title, the
   completion date, a score when the LMS provides one, and any mapped certificate
   attributes to the Verifycate API so the certificate can be created, issued and
-  delivered. No data is sent before the site is connected and a mapping is
-  saved.
+  delivered. When a logged-in learner opens the certificate wallet, their
+  WordPress account email is sent to retrieve their certificates. Public
+  verification sends only the certificate's public ID. No learner data is sent
+  by the issuance pipeline before the site is connected and a mapping is saved.
 * The connection uses the REST API over HTTPS with a workspace API key.
 * Terms of Use: https://verifycate.com/terms
 * Privacy Policy: https://verifycate.com/privacy
+* Pricing: https://verifycate.com/pricing
 
-A Verifycate account is required for the plugin to issue certificates.
+A paid Verifycate workspace is required for the plugin to issue certificates.
+
+== Privacy ==
+
+Verifycate stores workspace settings, certificate mappings, issuance queue
+entries and activity logs in the WordPress database. Queue entries and logs can
+include a learner's name, email address, course, quiz or lesson identifiers,
+certificate metadata and API responses needed to diagnose issuance. Logs can be
+cleared from Verifycate > Logs. Uninstalling the plugin removes settings,
+mappings, queue history and logs only when the administrator enables
+“Delete settings, mappings, queue history and logs when the plugin is
+uninstalled” on the Configure screen.
+
+Certificate issuance sends learner data to Verifycate as described under
+External services. The Verifycate privacy policy is available at
+https://verifycate.com/privacy.
 
 == Installation ==
 

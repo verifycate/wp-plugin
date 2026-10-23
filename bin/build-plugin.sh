@@ -2,8 +2,8 @@
 #
 # Build the distributable plugin zip.
 #
-# Requires the Verifycate PHP SDK checkout at ../php-sdk (Composer path
-# repository) or access to the private repository through Composer auth.
+# Requires the Verifycate PHP SDK, installed by Composer from the public
+# verifycate/php-sdk repository.
 
 set -euo pipefail
 

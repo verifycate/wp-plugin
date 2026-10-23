@@ -14,15 +14,16 @@ and the [WordPress plugin best practices](https://developer.wordpress.org/plugin
 
 ## Development setup
 
-The plugin depends on the private `verifycate/php-sdk` package through a
-Composer path repository at `../php-sdk`. Keep the checkouts side by side:
+The plugin uses the public `verifycate/php-sdk` package through Composer. The
+SDK is fetched automatically by `composer install`; no credentials are needed.
+Keep both checkouts side by side if you are working on the SDK too:
 
 ```bash
 mkdir -p ~/projects/verifycate-os
 cd ~/projects/verifycate-os
 
-git clone git@github.com:verifycate/wp-plugin.git
-git clone git@github.com:verifycate/php-sdk.git
+git clone https://github.com/verifycate/wp-plugin.git
+git clone https://github.com/verifycate/php-sdk.git
 
 cd wp-plugin
 composer install
@@ -44,13 +45,9 @@ local harness with Docker, the mock Verifycate API and all free LMS plugins, see
 wp-env is pinned to PHP 8.3 because the old PHP 7.4 wp-env image no longer
 builds from its Debian package URLs. CI still covers PHP 7.4 through 8.4.
 
-### CI key
+### CI and the PHP SDK
 
-CI clones the private SDK before installing dependencies. The repository has a
-read-only deploy key for `verifycate/php-sdk` stored as the
-`VERIFYCATE_SDK_DEPLOY_KEY` secret. Without it the quality and package jobs fail
-before Composer runs. When the SDK becomes public, remove the key and secret and
-switch the clone to HTTPS.
+CI installs the public SDK through Composer. No manual SDK checkout is required.
 
 ## Coding standards
 
