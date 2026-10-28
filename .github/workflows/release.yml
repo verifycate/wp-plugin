@@ -32,7 +32,6 @@ jobs:
           coverage: none
           tools: composer
 
-
       - name: Build the distributable plugin zip
         run: composer build
 
@@ -40,6 +39,13 @@ jobs:
         run: |
           test -s build/verifycate.zip
           unzip -l build/verifycate.zip | grep -q 'verifycate/verifycate.php'
+
+      - name: Upload the plugin artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: verifycate-plugin
+          path: build/verifycate.zip
+          if-no-files-found: error
 
       - name: Create GitHub release
         env:
@@ -55,3 +61,107 @@ jobs:
               --generate-notes \
               --latest
           fi
+
+  wordpress-org:
+    name: Publish to WordPress.org
+    needs: package
+    runs-on: ubuntu-latest
+    environment: wordpress-org
+    permissions:
+      contents: read
+    env:
+      RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
+      SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+      SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Install Subversion
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y subversion rsync
+
+      - name: Download the plugin artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: verifycate-plugin
+          path: build
+
+      - name: Extract the plugin
+        run: |
+          rm -rf build/verifycate
+          unzip -q build/verifycate.zip -d build
+
+      - name: Validate the release version
+        run: |
+          VERSION="${RELEASE_TAG#v}"
+          test -n "$VERSION"
+          grep -q "Version:[[:space:]]*${VERSION}$" build/verifycate/verifycate.php
+          grep -q "^Stable tag: ${VERSION}$" build/verifycate/readme.txt
+
+      - name: Checkout WordPress.org SVN
+        run: |
+          svn checkout https://plugins.svn.wordpress.org/verifycate/ svn \
+            --username "$SVN_USERNAME" \
+            --password "$SVN_PASSWORD" \
+            --non-interactive \
+            --no-auth-cache
+
+      - name: Publish trunk and assets
+        run: |
+          VERSION="${RELEASE_TAG#v}"
+
+          if svn info "svn/tags/${VERSION}" >/dev/null 2>&1; then
+            echo "SVN tag ${VERSION} already exists; refusing to overwrite a released version." >&2
+            exit 1
+          fi
+
+          rsync -a --delete --exclude='.svn' build/verifycate/ svn/trunk/
+          mkdir -p svn/assets
+          cp .wordpress-org/screenshot-*.png svn/assets/
+          find .wordpress-org -maxdepth 1 -type f \
+            \( -name 'banner-*' -o -name 'icon-*' \) \
+            -exec cp {} svn/assets/ \;
+
+          cd svn
+          svn add --force trunk assets
+          svn propset svn:mime-type image/png assets/*.png || true
+
+          if [ -n "$(svn status --quiet)" ]; then
+            svn commit trunk assets \
+              --username "$SVN_USERNAME" \
+              --password "$SVN_PASSWORD" \
+              --non-interactive \
+              --no-auth-cache \
+              -m "Release ${VERSION}"
+          else
+            echo "No trunk or asset changes to commit."
+          fi
+
+      - name: Create the SVN release tag
+        run: |
+          VERSION="${RELEASE_TAG#v}"
+          cd svn
+          svn cp trunk "tags/${VERSION}"
+          svn commit "tags/${VERSION}" \
+            --username "$SVN_USERNAME" \
+            --password "$SVN_PASSWORD" \
+            --non-interactive \
+            --no-auth-cache \
+            -m "Tag ${VERSION}"
+
+      - name: Verify the public plugin
+        run: |
+          VERSION="${RELEASE_TAG#v}"
+          for attempt in 1 2 3 4 5 6; do
+            if curl -fsS "https://plugins.svn.wordpress.org/verifycate/tags/${VERSION}/verifycate.php" >/dev/null; then
+              echo "Published verifycate ${VERSION}."
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "SVN tag committed, but the public mirror has not caught up yet." >&2

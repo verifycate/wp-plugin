@@ -100,8 +100,20 @@ CI runs the same checks on PHP 7.4–8.3, the official
 plugin, and uploads the zip as an artifact on every push and pull request.
 
 Pushing a `v*` tag runs `.github/workflows/release.yml`, rebuilds the zip from
-that tag, and publishes it as a GitHub Release. You can also start that workflow
-manually with an existing tag.
+that tag, publishes it as a GitHub Release, and deploys the same build to the
+WordPress.org SVN repository. You can also start that workflow manually with an
+existing tag.
+
+The WordPress.org job runs in the `wordpress-org` GitHub environment. Configure
+that environment with required reviewers and add two environment secrets:
+
+- `SVN_USERNAME` — `aswinshenoy`
+- `SVN_PASSWORD` — the SVN password from
+  https://profiles.wordpress.org/me/profile/edit/group/3/?screen=svn-password
+
+The tag version, the plugin header and `readme.txt` `Stable tag` must match.
+The workflow deploys `trunk`, the files in `.wordpress-org`, and a new SVN tag;
+it refuses to overwrite an existing released tag.
 
 ### CI and the PHP SDK
 
