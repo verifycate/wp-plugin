@@ -39,17 +39,14 @@ final class MappingRepository {
 		global $wpdb;
 
 		$table = $this->table();
-		$sql   = 'SELECT * FROM %i';
-		$args  = array( $table );
 
 		if ( $enabled_only ) {
-			$sql .= ' WHERE enabled = 1';
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i WHERE enabled = 1 ORDER BY id DESC', $table ), ARRAY_A );
+		} else {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i ORDER BY id DESC', $table ), ARRAY_A );
 		}
-
-		$sql .= ' ORDER BY id DESC';
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $args ), ARRAY_A );
 
 		return $this->hydrate( is_array( $rows ) ? $rows : array() );
 	}
@@ -76,11 +73,17 @@ final class MappingRepository {
 		list( $where, $params ) = $this->searchClause( $search );
 
 		$order_sql = $this->orderClause( $orderby, $order );
-		$sql       = "SELECT m.* FROM %i m LEFT JOIN %i p ON p.ID = m.course_id {$where} {$order_sql} LIMIT %d OFFSET %d";
 		$params    = array_merge( array( $table, $posts ), $params, array( $per_page, $offset ) );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $params ), ARRAY_A );
+		$rows = $wpdb->get_results(
+			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- Search placeholders are built dynamically.
+			$wpdb->prepare(
+				"SELECT m.* FROM %i m LEFT JOIN %i p ON p.ID = m.course_id {$where} {$order_sql} LIMIT %d OFFSET %d",
+				$params
+			),
+			ARRAY_A
+		);
 
 		return $this->hydrate( is_array( $rows ) ? $rows : array() );
 	}
@@ -235,11 +238,16 @@ final class MappingRepository {
 
 		list( $where, $params ) = $this->searchClause( $search );
 
-		$sql  = "SELECT COUNT(*) FROM %i m LEFT JOIN %i p ON p.ID = m.course_id {$where}";
 		$args = array_merge( array( $table, $posts ), $params );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		return (int) $wpdb->get_var( $wpdb->prepare( $sql, $args ) );
+		return (int) $wpdb->get_var(
+			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- Search placeholders are built dynamically.
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM %i m LEFT JOIN %i p ON p.ID = m.course_id {$where}",
+				$args
+			)
+		);
 	}
 
 	/**
