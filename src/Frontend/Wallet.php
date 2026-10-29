@@ -115,8 +115,6 @@ final class Wallet {
 			array(),
 			$version
 		);
-
-		wp_enqueue_style( 'verifycate-wallet' );
 	}
 
 	/**
@@ -168,6 +166,8 @@ final class Wallet {
 	 * @return string
 	 */
 	public function render( array $args ): string {
+		wp_enqueue_style( 'verifycate-wallet' );
+
 		$title      = isset( $args['title'] ) && '' !== (string) $args['title'] ? (string) $args['title'] : __( 'My certificates', 'verifycate' );
 		$empty_text = isset( $args['empty_text'] ) && '' !== (string) $args['empty_text'] ? (string) $args['empty_text'] : __( 'No certificates yet.', 'verifycate' );
 		$limit      = isset( $args['limit'] ) ? max( 1, min( 50, (int) $args['limit'] ) ) : 20;

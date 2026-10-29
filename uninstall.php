@@ -41,8 +41,8 @@ $verifycate_cleanup = static function (): void {
 
 	foreach ( array( 'mappings', 'jobs', 'logs' ) as $verifycate_table ) {
 		$verifycate_name = $wpdb->prefix . 'verifycate_' . $verifycate_table;
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$wpdb->query( "DROP TABLE IF EXISTS `{$verifycate_name}`" );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+		$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $verifycate_name ) );
 	}
 };
 

@@ -39,7 +39,7 @@ final class MappingRepository {
 		global $wpdb;
 
 		$table = $this->table();
-		$sql   = "SELECT * FROM {$table}";
+		$sql   = $wpdb->prepare( 'SELECT * FROM %i', $table );
 
 		if ( $enabled_only ) {
 			$sql .= ' WHERE enabled = 1';
@@ -47,7 +47,7 @@ final class MappingRepository {
 
 		$sql .= ' ORDER BY id DESC';
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$rows = $wpdb->get_results( $sql, ARRAY_A );
 
 		return $this->hydrate( is_array( $rows ) ? $rows : array() );
@@ -75,9 +75,8 @@ final class MappingRepository {
 		list( $where, $params ) = $this->searchClause( $search );
 
 		$order_sql = $this->orderClause( $orderby, $order );
-		$sql       = "SELECT m.* FROM {$table} m LEFT JOIN {$posts} p ON p.ID = m.course_id {$where} {$order_sql} LIMIT %d OFFSET %d";
-		$params[]  = $per_page;
-		$params[]  = $offset;
+		$sql       = "SELECT m.* FROM %i m LEFT JOIN %i p ON p.ID = m.course_id {$where} {$order_sql} LIMIT %d OFFSET %d";
+		$params    = array_merge( array( $table, $posts ), $params, array( $per_page, $offset ) );
 		$prepared  = $wpdb->prepare( $sql, $params );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
@@ -96,8 +95,8 @@ final class MappingRepository {
 		global $wpdb;
 
 		$table = $this->table();
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $id ), ARRAY_A );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$row = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $table, $id ), ARRAY_A );
 
 		return is_array( $row ) ? Mapping::fromRow( $row ) : null;
 	}
@@ -206,10 +205,11 @@ final class MappingRepository {
 		global $wpdb;
 
 		$table = $this->table();
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT * FROM {$table} WHERE enabled = 1 AND integration = %s AND (course_id = 0 OR course_id = %d) AND event = %s AND (trigger_id = 0 OR trigger_id = %d) ORDER BY course_id DESC, trigger_id DESC, id ASC",
+				'SELECT * FROM %i WHERE enabled = 1 AND integration = %s AND (course_id = 0 OR course_id = %d) AND event = %s AND (trigger_id = 0 OR trigger_id = %d) ORDER BY course_id DESC, trigger_id DESC, id ASC',
+				$table,
 				$integration,
 				$course_id,
 				$event,
@@ -235,13 +235,11 @@ final class MappingRepository {
 
 		list( $where, $params ) = $this->searchClause( $search );
 
-		$sql = "SELECT COUNT(*) FROM {$table} m LEFT JOIN {$posts} p ON p.ID = m.course_id {$where}";
+		$sql  = "SELECT COUNT(*) FROM %i m LEFT JOIN %i p ON p.ID = m.course_id {$where}";
+		$args = array_merge( array( $table, $posts ), $params );
+		$sql  = $wpdb->prepare( $sql, $args );
 
-		if ( $params !== array() ) {
-			$sql = $wpdb->prepare( $sql, $params );
-		}
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
 		return (int) $wpdb->get_var( $sql );
 	}
 
