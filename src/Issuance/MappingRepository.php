@@ -39,7 +39,8 @@ final class MappingRepository {
 		global $wpdb;
 
 		$table = $this->table();
-		$sql   = $wpdb->prepare( 'SELECT * FROM %i', $table );
+		$sql   = 'SELECT * FROM %i';
+		$args  = array( $table );
 
 		if ( $enabled_only ) {
 			$sql .= ' WHERE enabled = 1';
@@ -48,7 +49,7 @@ final class MappingRepository {
 		$sql .= ' ORDER BY id DESC';
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$rows = $wpdb->get_results( $sql, ARRAY_A );
+		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $args ), ARRAY_A );
 
 		return $this->hydrate( is_array( $rows ) ? $rows : array() );
 	}
@@ -77,10 +78,9 @@ final class MappingRepository {
 		$order_sql = $this->orderClause( $orderby, $order );
 		$sql       = "SELECT m.* FROM %i m LEFT JOIN %i p ON p.ID = m.course_id {$where} {$order_sql} LIMIT %d OFFSET %d";
 		$params    = array_merge( array( $table, $posts ), $params, array( $per_page, $offset ) );
-		$prepared  = $wpdb->prepare( $sql, $params );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
-		$rows = $wpdb->get_results( $prepared, ARRAY_A );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $params ), ARRAY_A );
 
 		return $this->hydrate( is_array( $rows ) ? $rows : array() );
 	}
@@ -237,10 +237,9 @@ final class MappingRepository {
 
 		$sql  = "SELECT COUNT(*) FROM %i m LEFT JOIN %i p ON p.ID = m.course_id {$where}";
 		$args = array_merge( array( $table, $posts ), $params );
-		$sql  = $wpdb->prepare( $sql, $args );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
-		return (int) $wpdb->get_var( $sql );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		return (int) $wpdb->get_var( $wpdb->prepare( $sql, $args ) );
 	}
 
 	/**
