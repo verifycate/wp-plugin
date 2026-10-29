@@ -113,13 +113,7 @@ final class ClientFactory {
 				$workspace->isSeatLive()
 			);
 
-			if ( ! $workspace->isSeatLive() ) {
-				$result = array(
-					'ok'      => false,
-					'message' => __( 'This workspace has no active Verifycate plan. Activate a plan before issuing certificates.', 'verifycate' ),
-					'total'   => 0,
-				);
-			} elseif ( ! $workspace->canWriteCertificates() ) {
+			if ( ! $workspace->canWriteCertificates() ) {
 				$result = array(
 					'ok'      => false,
 					'message' => __( 'This API key can read certificates but cannot issue them. Create a key with the certificates:write scope and reconnect.', 'verifycate' ),
@@ -195,7 +189,7 @@ final class ClientFactory {
 		}
 
 		if ( $exception->isPaymentRequired() ) {
-			return __( 'This workspace needs an active Verifycate plan before certificates can be issued.', 'verifycate' );
+			return __( 'This workspace needs more credits before certificates can be issued, or the action uses a Pro feature.', 'verifycate' );
 		}
 
 		if ( $exception->isForbidden() ) {

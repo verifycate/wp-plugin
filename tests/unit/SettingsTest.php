@@ -194,4 +194,23 @@ final class SettingsTest extends TestCase {
 		$this->assertFalse( $settings->isReadyToIssue() );
 		$this->assertNotSame( '', $settings->connectionIssue() );
 	}
+
+	/**
+	 * API access does not depend on a Pro seat.
+	 */
+	public function test_unseated_workspace_can_still_issue(): void {
+		Functions\expect( 'update_option' )->once();
+
+		$settings = new Settings( array( 'api_key' => Crypto::encrypt( 'vc_key' ) ) );
+		$settings->setResolvedWorkspace(
+			'acme',
+			array( 'certificates:read', 'certificates:write' ),
+			false,
+			false
+		);
+
+		$this->assertFalse( $settings->isSeatLive() );
+		$this->assertTrue( $settings->isReadyToIssue() );
+		$this->assertSame( '', $settings->connectionIssue() );
+	}
 }

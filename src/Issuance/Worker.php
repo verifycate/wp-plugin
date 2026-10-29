@@ -312,7 +312,7 @@ final class Worker {
 		$detail = $exception->getDetail();
 
 		if ( $exception->isPaymentRequired() ) {
-			return __( 'The workspace needs an active plan before certificates can be issued.', 'verifycate' );
+			return __( 'The workspace needs more credits before certificates can be issued.', 'verifycate' );
 		}
 
 		if ( $exception->isUnauthorized() ) {
