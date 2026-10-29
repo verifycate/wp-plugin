@@ -76,6 +76,7 @@ final class MappingRepository {
 		$params    = array_merge( array( $table, $posts ), $params, array( $per_page, $offset ) );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter -- WHERE clause is static; values use placeholders.
 		$rows = $wpdb->get_results(
 			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- Search placeholders are built dynamically.
 			$wpdb->prepare(
@@ -241,6 +242,7 @@ final class MappingRepository {
 		$args = array_merge( array( $table, $posts ), $params );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter -- WHERE clause is static; values use placeholders.
 		return (int) $wpdb->get_var(
 			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- Search placeholders are built dynamically.
 			$wpdb->prepare(
