@@ -88,8 +88,10 @@ final class LearnPress extends AbstractIntegration {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are built from $wpdb->prefix, values are prepared.
-				"SELECT p.ID, p.post_title, s.section_course_id AS course_id FROM {$wpdb->posts} p INNER JOIN {$items} si ON si.item_id = p.ID INNER JOIN {$sections} s ON s.section_id = si.section_id WHERE p.post_type = %s AND p.post_status = 'publish' GROUP BY p.ID, p.post_title, s.section_course_id ORDER BY s.section_course_id, p.post_title LIMIT %d",
+				"SELECT p.ID, p.post_title, s.section_course_id AS course_id FROM %i p INNER JOIN %i si ON si.item_id = p.ID INNER JOIN %i s ON s.section_id = si.section_id WHERE p.post_type = %s AND p.post_status = 'publish' GROUP BY p.ID, p.post_title, s.section_course_id ORDER BY s.section_course_id, p.post_title LIMIT %d",
+				$wpdb->posts,
+				$items,
+				$sections,
 				$post_type,
 				max( 1, min( 1000, $limit ) )
 			),

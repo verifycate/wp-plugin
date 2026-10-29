@@ -134,18 +134,20 @@ final class Queue {
 		$now   = current_time( 'mysql', true );
 		$stale = gmdate( 'Y-m-d H:i:s', time() - self::LOCK_TIMEOUT );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->query(
 			$wpdb->prepare(
-				"UPDATE {$table} SET status = 'pending', locked_at = NULL WHERE status = 'processing' AND locked_at < %s",
+				'UPDATE %i SET status = \'pending\', locked_at = NULL WHERE status = \'processing\' AND locked_at < %s',
+				$table,
 				$stale
 			)
 		);
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$ids = $wpdb->get_col(
 			$wpdb->prepare(
-				"SELECT id FROM {$table} WHERE status = 'pending' AND available_at <= %s ORDER BY id ASC LIMIT %d",
+				'SELECT id FROM %i WHERE status = \'pending\' AND available_at <= %s ORDER BY id ASC LIMIT %d',
+				$table,
 				$now,
 				$limit
 			)
@@ -154,10 +156,11 @@ final class Queue {
 		$jobs = array();
 
 		foreach ( is_array( $ids ) ? $ids : array() as $id ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$updated = $wpdb->query(
 				$wpdb->prepare(
-					"UPDATE {$table} SET status = 'processing', locked_at = %s, attempts = attempts + 1, updated_at = %s WHERE id = %d AND status = 'pending'",
+					'UPDATE %i SET status = \'processing\', locked_at = %s, attempts = attempts + 1, updated_at = %s WHERE id = %d AND status = \'pending\'',
+					$table,
 					$now,
 					$now,
 					(int) $id
@@ -168,9 +171,9 @@ final class Queue {
 				continue;
 			}
 
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$row = $wpdb->get_row(
-				$wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", (int) $id ),
+				$wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $table, (int) $id ),
 				ARRAY_A
 			);
 
@@ -228,8 +231,8 @@ final class Queue {
 		global $wpdb;
 
 		$table = $this->table();
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$attempts = (int) $wpdb->get_var( $wpdb->prepare( "SELECT attempts FROM {$table} WHERE id = %d", $id ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$attempts = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT attempts FROM %i WHERE id = %d', $table, $id ) );
 
 		if ( $retryable && $attempts < self::MAX_ATTEMPTS ) {
 			$delay     = self::retryDelay( $attempts, $retry_after );
@@ -291,10 +294,11 @@ final class Queue {
 		$table = $this->table();
 		$now   = current_time( 'mysql', true );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$updated = $wpdb->query(
 			$wpdb->prepare(
-				"UPDATE {$table} SET status = 'pending', attempts = 0, available_at = %s, locked_at = NULL, updated_at = %s WHERE status = 'failed'",
+				'UPDATE %i SET status = \'pending\', attempts = 0, available_at = %s, locked_at = NULL, updated_at = %s WHERE status = \'failed\'',
+				$table,
 				$now,
 				$now
 			)
@@ -319,10 +323,11 @@ final class Queue {
 		$table = $this->table();
 		$now   = current_time( 'mysql', true );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$updated = $wpdb->query(
 			$wpdb->prepare(
-				"UPDATE {$table} SET status = 'pending', attempts = 0, available_at = %s, locked_at = NULL, last_error = NULL, updated_at = %s WHERE id = %d",
+				'UPDATE %i SET status = \'pending\', attempts = 0, available_at = %s, locked_at = NULL, last_error = NULL, updated_at = %s WHERE id = %d',
+				$table,
 				$now,
 				$now,
 				$id
@@ -348,8 +353,8 @@ final class Queue {
 
 		$table = $this->table();
 		$rows  = $wpdb->get_results(
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			"SELECT status, COUNT(*) AS total FROM {$table} GROUP BY status",
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare( 'SELECT status, COUNT(*) AS total FROM %i GROUP BY status', $table ),
 			ARRAY_A
 		);
 
@@ -382,9 +387,9 @@ final class Queue {
 		$table = $this->table();
 		$limit = max( 1, min( 200, $limit ) );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$rows = $wpdb->get_results(
-			$wpdb->prepare( "SELECT * FROM {$table} ORDER BY id DESC LIMIT %d", $limit ),
+			$wpdb->prepare( 'SELECT * FROM %i ORDER BY id DESC LIMIT %d', $table, $limit ),
 			ARRAY_A
 		);
 
@@ -428,10 +433,11 @@ final class Queue {
 		$table  = $this->table();
 		$cutoff = gmdate( 'Y-m-d H:i:s', time() - ( max( 1, $days ) * DAY_IN_SECONDS ) );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$deleted = $wpdb->query(
 			$wpdb->prepare(
-				"DELETE FROM {$table} WHERE status IN ('done','failed') AND updated_at < %s",
+				'DELETE FROM %i WHERE status IN (\'done\',\'failed\') AND updated_at < %s',
+				$table,
 				$cutoff
 			)
 		);
@@ -455,12 +461,13 @@ final class Queue {
 
 		$table        = $this->table();
 		$placeholders = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
-		$args         = array_merge( array( $dedupe_key ), $statuses );
+		$args         = array_merge( array( $table, $dedupe_key ), $statuses );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$count = $wpdb->get_var(
+			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- Status placeholders are built dynamically.
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$table} WHERE dedupe_key = %s AND status IN ({$placeholders})",
+				"SELECT COUNT(*) FROM %i WHERE dedupe_key = %s AND status IN ({$placeholders})",
 				$args
 			)
 		);

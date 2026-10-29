@@ -182,7 +182,7 @@ final class Settings {
 	 * @return bool
 	 */
 	public function isReadyToIssue(): bool {
-		return $this->isConnected() && $this->isSeatLive() && $this->canWriteCertificates();
+		return $this->isConnected() && $this->canWriteCertificates();
 	}
 
 	/**
@@ -193,10 +193,6 @@ final class Settings {
 	public function connectionIssue(): string {
 		if ( ! $this->isConnected() ) {
 			return '';
-		}
-
-		if ( ! $this->isSeatLive() ) {
-			return __( 'This workspace has no active Verifycate plan. Activate a plan before issuing certificates.', 'verifycate' );
 		}
 
 		if ( ! $this->canWriteCertificates() ) {
